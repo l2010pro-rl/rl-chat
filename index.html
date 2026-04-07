@@ -1,23 +1,8 @@
-
-                        <!DOCTYPE html>
-                        <html lang="en">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <style>
-                body {
-                  background-color: white; /* Ensure the iframe has a white background */
-                }
-
-                
-              </style>
-                        </head>
-                        <body>
-                            <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RL Chat</title>
     
     <!-- Tailwind CSS -->
@@ -29,7 +14,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDKs (Compat) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -39,7 +24,11 @@
             font-family: 'Inter', sans-serif;
             background-color: #0f172a;
             color: #e2e8f0;
-            overflow: hidden;
+            overflow: hidden; /* Prevent body scroll */
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
         }
 
         h1, h2, h3, .brand-font {
@@ -48,16 +37,21 @@
 
         /* Glassmorphism */
         .glass {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-header {
+            background: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         /* Message Bubbles */
         .msg-sent {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            box-shadow: 0 4px 15px -3px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 4px 15px -3px rgba(79, 70, 229, 0.3);
             border-radius: 18px 18px 4px 18px;
         }
 
@@ -73,9 +67,10 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-slide-up {
-            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
+        /* Background Mesh */
         .bg-mesh {
             background-color: #0f172a;
             background-image: 
@@ -94,21 +89,27 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body class="h-screen w-screen flex items-center justify-center bg-mesh selection:bg-indigo-500 selection:text-white">
+<body class="bg-mesh text-slate-200">
 
     <!-- LOGIN VIEW -->
-    <div id="login-view" class="w-full max-w-md p-6 z-50 transition-opacity duration-500">
-        <div class="glass rounded-3xl p-8 shadow-2xl border border-slate-700/50 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+    <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm transition-opacity duration-500">
+        <div class="w-full max-w-md bg-slate-800/50 rounded-3xl p-8 shadow-2xl border border-slate-700/50 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
             
             <div class="text-center mb-8">
                 <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 mb-4">
                     <i class="ph-bold ph-chat-teardrop-text text-3xl"></i>
                 </div>
                 <h1 class="text-3xl font-bold brand-font text-white mb-2">RL Chat</h1>
-                <p class="text-slate-400 text-sm">Accedi per sincronizzare i messaggi.</p>
+                <p class="text-slate-400 text-sm">Accedi per iniziare.</p>
             </div>
 
             <form id="email-login-form" class="space-y-4">
@@ -116,14 +117,14 @@
                     <label class="block text-xs font-medium text-slate-400 mb-1 ml-1">Email</label>
                     <div class="relative">
                         <i class="ph ph-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                        <input type="email" id="email" required class="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder-slate-600" placeholder="nome@esempio.com">
+                        <input type="email" id="email" required class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder-slate-600" placeholder="nome@esempio.com">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1 ml-1">Password</label>
                     <div class="relative">
                         <i class="ph ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                        <input type="password" id="password" required class="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder-slate-600" placeholder="••••••••">
+                        <input type="password" id="password" required class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder-slate-600" placeholder="••••••••">
                     </div>
                 </div>
                 
@@ -136,10 +137,10 @@
 
             <div class="relative my-6">
                 <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700"></div></div>
-                <div class="relative flex justify-center text-xs uppercase"><span class="bg-[#162032] px-2 text-slate-500 rounded">Oppure continua con</span></div>
+                <div class="relative flex justify-center text-xs uppercase"><span class="bg-slate-800 px-2 text-slate-500 rounded">Oppure</span></div>
             </div>
 
-            <button id="google-btn" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-3 rounded-xl border border-slate-700 transition-all active:scale-95 flex justify-center items-center gap-3">
+            <button id="google-btn" class="w-full bg-slate-700/50 hover:bg-slate-700 text-white font-medium py-3 rounded-xl border border-slate-600 transition-all active:scale-95 flex justify-center items-center gap-3">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -150,94 +151,134 @@
             </button>
             
             <p class="mt-6 text-center text-xs text-slate-500">
-                Non hai un account? <a href="#" id="toggle-register" class="text-indigo-400 hover:text-indigo-300">Registrati</a>
+                <a href="#" id="toggle-register" class="text-indigo-400 hover:text-indigo-300">Registrati</a> se non hai un account.
             </p>
         </div>
     </div>
 
-    <!-- CHAT APP VIEW -->
-    <div id="app-view" class="w-full h-full max-w-[1600px] flex overflow-hidden relative sm:h-[90vh] sm:w-[95vw] sm:rounded-3xl shadow-2xl glass border border-slate-700/50 hidden opacity-0 transition-opacity duration-500">
+    <!-- MAIN APP (Full Screen) -->
+    <div id="app-view" class="hidden w-full h-full flex opacity-0 transition-opacity duration-500">
         
         <!-- Sidebar -->
-        <aside id="sidebar" class="w-full sm:w-[380px] flex flex-col border-r border-slate-700/50 bg-slate-900/80 z-20 transition-transform duration-300 absolute sm:relative h-full backdrop-blur-xl">
+        <aside id="sidebar" class="w-full sm:w-[350px] flex flex-col glass z-20 absolute sm:relative h-full transition-transform duration-300 transform -translate-x-full sm:translate-x-0">
             
-            <header class="h-[80px] px-6 flex justify-between items-center shrink-0">
+            <!-- Header -->
+            <header class="h-[70px] px-5 flex justify-between items-center shrink-0 glass-header">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
-                        <i class="ph-bold ph-chat-teardrop-text text-xl"></i>
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+                        <i class="ph-bold ph-chat-teardrop-text text-lg"></i>
                     </div>
-                    <span class="text-xl font-bold brand-font tracking-wide text-white">RL Chat</span>
+                    <span class="text-lg font-bold brand-font tracking-wide text-white">RL Chat</span>
                 </div>
-                <div class="flex items-center gap-3">
-                     <div class="text-right hidden md:block">
-                        <div id="user-name-display" class="text-xs font-bold text-white">Utente</div>
-                        <div id="user-email-display" class="text-[10px] text-slate-400 truncate max-w-[100px]">email@test.it</div>
-                    </div>
-                    <button id="logout-btn" class="w-8 h-8 rounded-lg hover:bg-red-500/10 flex items-center justify-center text-slate-400 hover:text-red-400 transition-colors" title="Esci">
-                        <i class="ph ph-sign-out text-xl"></i>
-                    </button>
-                </div>
+                <button id="settings-btn" class="w-9 h-9 rounded-full hover:bg-slate-700/50 flex items-center justify-center text-slate-400 transition-colors">
+                    <i class="ph ph-gear text-xl"></i>
+                </button>
             </header>
 
-            <div class="px-6 pb-4">
-                <div class="relative group">
-                    <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
-                    <input type="text" placeholder="Cerca conversazioni..." class="w-full bg-slate-800/50 border border-slate-700 text-slate-200 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-indigo-500/50 focus:bg-slate-800 transition-all placeholder-slate-500">
-                </div>
-            </div>
-
-            <div id="contact-list" class="flex-1 overflow-y-auto px-3 space-y-1">
+            <!-- Contact List -->
+            <div id="contact-list" class="flex-1 overflow-y-auto px-2 py-2 space-y-1">
                 <!-- JS Injected -->
             </div>
         </aside>
 
         <!-- Chat Area -->
-        <main class="flex-1 flex flex-col relative w-full bg-slate-900/40">
+        <main class="flex-1 flex flex-col relative w-full bg-slate-900/50">
             
+            <!-- Empty State -->
             <div id="empty-state" class="hidden sm:flex flex-col items-center justify-center h-full text-center p-10">
-                <div class="w-32 h-32 bg-slate-800/50 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                    <i class="ph-duotone ph-planet text-6xl text-indigo-400"></i>
+                <div class="w-24 h-24 bg-slate-800/50 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                    <i class="ph-duotone ph-planet text-5xl text-indigo-400"></i>
                 </div>
-                <h2 class="text-3xl font-bold text-white mb-2 brand-font">Benvenuto su RL Chat</h2>
-                <p class="text-slate-400 max-w-md">Seleziona una chat per iniziare a comunicare.</p>
+                <h2 class="text-2xl font-bold text-white mb-2 brand-font">Nessuna chat selezionata</h2>
+                <p class="text-slate-400 max-w-sm">Apri le impostazioni per aggiungere un contatto tramite il suo RL ID.</p>
             </div>
 
+            <!-- Active Chat Interface -->
             <div id="active-chat-interface" class="flex flex-col h-full w-full hidden">
                 
-                <header class="h-[80px] px-6 flex justify-between items-center shrink-0 border-b border-slate-700/50 glass">
-                    <div class="flex items-center gap-4">
-                        <button id="back-btn" class="sm:hidden text-slate-400 hover:text-white">
+                <!-- Chat Header -->
+                <header class="h-[70px] px-5 flex justify-between items-center shrink-0 glass-header z-10">
+                    <div class="flex items-center gap-3">
+                        <button id="back-btn" class="sm:hidden text-slate-400 hover:text-white mr-1">
                             <i class="ph-bold ph-arrow-left text-xl"></i>
                         </button>
-                        <div class="relative">
-                            <img id="chat-avatar" src="" class="w-11 h-11 rounded-full object-cover ring-2 ring-slate-700">
-                            <div id="chat-status-dot" class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-900 hidden"></div>
-                        </div>
+                        <img id="chat-avatar" src="" class="w-9 h-9 rounded-full object-cover ring-2 ring-slate-700">
                         <div>
-                            <h3 id="chat-name" class="text-white font-semibold text-lg leading-none mb-1">Name</h3>
-                            <span id="chat-subtitle" class="text-indigo-400 text-xs font-medium">Online</span>
+                            <h3 id="chat-name" class="text-white font-semibold text-base leading-none">Name</h3>
+                            <span id="chat-subtitle" class="text-indigo-400 text-xs">Online</span>
                         </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-all hover:text-indigo-400"><i class="ph ph-phone text-xl"></i></button>
-                        <button class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-all hover:text-indigo-400"><i class="ph ph-video-camera text-xl"></i></button>
                     </div>
                 </header>
 
-                <div id="messages-container" class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
+                <!-- Messages Container -->
+                <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth bg-mesh/30">
                     <!-- Messages injected here -->
                 </div>
 
-                <footer class="p-4 glass border-t border-slate-700/50">
-                    <div class="max-w-4xl mx-auto flex items-end gap-3 bg-slate-800/50 p-2 rounded-3xl border border-slate-700/50 focus-within:border-indigo-500/50 focus-within:bg-slate-800 transition-all shadow-lg">
-                        <textarea id="message-input" rows="1" placeholder="Scrivi un messaggio..." class="w-full bg-transparent text-slate-200 placeholder-slate-500 text-sm py-3 px-2 focus:outline-none resize-none max-h-32 scrollbar-hide"></textarea>
-                        <button id="send-btn" class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-500 hover:scale-105 active:scale-95 transition-all">
+                <!-- Input Area -->
+                <footer class="p-3 glass-header border-t border-slate-700/50">
+                    <div class="max-w-5xl mx-auto flex items-end gap-2 bg-slate-800/50 p-1.5 rounded-2xl border border-slate-700/50 focus-within:border-indigo-500/50 transition-all">
+                        <textarea id="message-input" rows="1" placeholder="Scrivi un messaggio..." class="w-full bg-transparent text-slate-200 placeholder-slate-500 text-sm py-2.5 px-3 focus:outline-none resize-none max-h-32 scrollbar-hide"></textarea>
+                        <button id="send-btn" class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-500 hover:scale-105 active:scale-95 transition-all shrink-0 mb-0.5">
                             <i class="ph-bold ph-paper-plane-right text-lg"></i>
                         </button>
                     </div>
                 </footer>
             </div>
         </main>
+
+        <!-- SETTINGS MODAL -->
+        <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-slide-up">
+                <div class="p-5 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-white brand-font">Impostazioni</h3>
+                    <button id="close-settings" class="text-slate-400 hover:text-white"><i class="ph ph-x text-xl"></i></button>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <!-- User Info -->
+                    <div class="flex items-center gap-4">
+                        <img id="settings-avatar" src="" class="w-14 h-14 rounded-full ring-2 ring-indigo-500/50">
+                        <div>
+                            <div id="settings-name" class="text-white font-bold text-lg">Nome Utente</div>
+                            <div id="settings-email" class="text-slate-400 text-xs">email@example.com</div>
+                        </div>
+                    </div>
+
+                    <!-- My RL ID -->
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                        <label class="text-xs text-indigo-400 font-bold uppercase tracking-wider mb-1 block">Il tuo RL ID</label>
+                        <div class="flex items-center justify-between">
+                            <code id="my-rl-id" class="text-xl font-mono text-white tracking-widest">LOADING...</code>
+                            <button onclick="copyToClipboard()" class="text-slate-400 hover:text-white" title="Copia">
+                                <i class="ph ph-copy text-lg"></i>
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-2">Condividi questo codice con gli amici per chattare.</p>
+                    </div>
+
+                    <!-- Add Contact -->
+                    <div>
+                        <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 block">Aggiungi Contatto</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="add-contact-input" placeholder="Inserisci RL ID (10 cifre)" maxlength="10" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none uppercase font-mono">
+                            <button id="add-contact-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                Aggiungi
+                            </button>
+                        </div>
+                        <div id="add-contact-error" class="text-red-400 text-xs mt-2 hidden"></div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-900/30 border-t border-slate-700/50 flex justify-between items-center">
+                    <span class="text-xs text-slate-500">Versione 1.0.2</span>
+                    <button id="logout-btn-settings" class="text-red-400 hover:text-red-300 text-sm font-medium flex items-center gap-1">
+                        <i class="ph ph-sign-out"></i> Esci
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -252,304 +293,263 @@
         };
 
         // Initialize Firebase
-        try {
-            firebase.initializeApp(firebaseConfig);
-            console.log("Firebase initialized successfully");
-        } catch (e) {
-            console.error("Firebase init error:", e);
-            alert("Errore inizializzazione Firebase. Controlla la console.");
-        }
-        
+        firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         const provider = new firebase.auth.GoogleAuthProvider();
 
+        // --- UTILS ---
+        function generateRLID() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 10; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function copyToClipboard() {
+            const code = document.getElementById('my-rl-id').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert("RL ID copiato!");
+            });
+        }
+
+        // --- STATE ---
+        let currentUser = null;
+        let currentChatId = null;
+        let unsubscribeMessages = null;
+        let contacts = []; // Will hold dynamic contacts
+
         // --- DOM ELEMENTS ---
         const loginView = document.getElementById('login-view');
         const appView = document.getElementById('app-view');
-        const emailForm = document.getElementById('email-login-form');
-        const googleBtn = document.getElementById('google-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const toggleRegister = document.getElementById('toggle-register');
-        const loginError = document.getElementById('login-error');
-        const loginBtnText = document.querySelector('#login-btn span');
-        const userNameDisplay = document.getElementById('user-name-display');
-        const userEmailDisplay = document.getElementById('user-email-display');
+        const settingsModal = document.getElementById('settings-modal');
+        const contactListEl = document.getElementById('contact-list');
+        const messagesContainer = document.getElementById('messages-container');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
         
-        const loginLoader = document.createElement('div');
-        loginLoader.className = 'loader';
-
         // --- AUTH LOGIC ---
 
         function setLoading(isLoading) {
+            const btn = document.getElementById('login-btn');
             if (isLoading) {
-                loginBtnText.textContent = 'Accesso in corso...';
-                document.getElementById('login-btn').appendChild(loginLoader);
-                document.getElementById('login-btn').disabled = true;
+                btn.disabled = true;
+                btn.innerHTML = '<div class="loader"></div>';
             } else {
-                loginBtnText.textContent = 'Accedi';
-                loginLoader.remove();
-                document.getElementById('login-btn').disabled = false;
+                btn.disabled = false;
+                btn.innerHTML = '<span>Accedi</span>';
             }
         }
 
-        function showError(msg) {
-            loginError.textContent = msg;
-            loginError.classList.remove('hidden');
-        }
+        async function handleAuthSuccess(user) {
+            currentUser = user;
+            
+            // Check/Create User Profile in Firestore
+            const userRef = db.collection('users').doc(user.uid);
+            const doc = await userRef.get();
+            
+            let rlId = "";
+            if (!doc.exists) {
+                rlId = generateRLID();
+                await userRef.set({
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName || user.email.split('@')[0],
+                    photoURL: user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=random`,
+                    rlId: rlId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } else {
+                rlId = doc.data().rlId;
+            }
 
-        function handleAuthSuccess(user) {
-            userNameDisplay.textContent = user.displayName || user.email.split('@')[0];
-            userEmailDisplay.textContent = user.email;
+            // Update UI
+            document.getElementById('user-name-display').textContent = user.displayName || "Utente";
+            document.getElementById('user-email-display').textContent = user.email;
+            
+            // Settings UI
+            document.getElementById('settings-name').textContent = user.displayName || "Utente";
+            document.getElementById('settings-email').textContent = user.email;
+            document.getElementById('settings-avatar').src = user.photoURL || `https://ui-avatars.com/api/?name=${user.email}`;
+            document.getElementById('my-rl-id').textContent = rlId;
 
+            // Transition
             loginView.style.opacity = '0';
             setTimeout(() => {
                 loginView.classList.add('hidden');
                 appView.classList.remove('hidden');
                 void appView.offsetWidth; 
                 appView.style.opacity = '1';
-                initChatApp(user);
+                
+                loadContacts(); // Load chats
             }, 500);
         }
 
-        emailForm.addEventListener('submit', (e) => {
+        // Login Form
+        document.getElementById('email-login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const isRegistering = toggleRegister.textContent === "Accedi";
+            const isRegistering = document.getElementById('toggle-register').textContent === "Accedi";
 
-            loginError.classList.add('hidden');
             setLoading(true);
+            document.getElementById('login-error').classList.add('hidden');
 
-            if (isRegistering) {
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        return userCredential.user.updateProfile({ displayName: email.split('@')[0] })
-                            .then(() => userCredential.user);
-                    })
-                    .then((user) => handleAuthSuccess(user))
-                    .catch((error) => showError(getErrorMessage(error.code)))
-                    .finally(() => setLoading(false));
-            } else {
-                auth.signInWithEmailAndPassword(email, password)
-                    .then((userCredential) => handleAuthSuccess(userCredential.user))
-                    .catch((error) => showError(getErrorMessage(error.code)))
-                    .finally(() => setLoading(false));
-            }
+            const promise = isRegistering 
+                ? auth.createUserWithEmailAndPassword(email, password)
+                : auth.signInWithEmailAndPassword(email, password);
+
+            promise.then((cred) => {
+                if(isRegistering) return cred.user.updateProfile({ displayName: email.split('@')[0] });
+            })
+            .then(() => handleAuthSuccess(auth.currentUser))
+            .catch(err => {
+                document.getElementById('login-error').textContent = err.message;
+                document.getElementById('login-error').classList.remove('hidden');
+                setLoading(false);
+            });
         });
 
-        googleBtn.addEventListener('click', () => {
-            loginError.classList.add('hidden');
+        // Google Login
+        document.getElementById('google-btn').addEventListener('click', () => {
             auth.signInWithPopup(provider)
                 .then((result) => handleAuthSuccess(result.user))
-                .catch((error) => showError(getErrorMessage(error.code)));
+                .catch(err => console.error(err));
         });
 
-        logoutBtn.addEventListener('click', () => {
+        // Logout
+        const doLogout = () => {
             auth.signOut();
             window.location.reload();
-        });
+        };
+        document.getElementById('logout-btn').addEventListener('click', doLogout);
+        document.getElementById('logout-btn-settings').addEventListener('click', doLogout);
 
-        let isLoginMode = true;
-        toggleRegister.addEventListener('click', (e) => {
+        // Toggle Register/Login
+        document.getElementById('toggle-register').addEventListener('click', (e) => {
             e.preventDefault();
-            isLoginMode = !isLoginMode;
-            if (isLoginMode) {
-                toggleRegister.textContent = "Registrati";
-                document.querySelector('button[type="submit"] span').textContent = "Accedi";
-                document.querySelector('p.text-xs.text-slate-500').innerHTML = `Non hai un account? <a href="#" id="toggle-register" class="text-indigo-400 hover:text-indigo-300">Registrati</a>`;
+            const el = e.target;
+            if (el.textContent === "Registrati") {
+                el.textContent = "Accedi";
+                document.querySelector('#login-btn span').textContent = "Registrati";
             } else {
-                toggleRegister.textContent = "Accedi";
-                document.querySelector('button[type="submit"] span').textContent = "Registrati";
-                document.querySelector('p.text-xs.text-slate-500').innerHTML = `Hai già un account? <a href="#" id="toggle-register" class="text-indigo-400 hover:text-indigo-300">Accedi</a>`;
+                el.textContent = "Registrati";
+                document.querySelector('#login-btn span').textContent = "Accedi";
             }
-            document.getElementById('toggle-register').addEventListener('click', arguments.callee);
         });
-
-        function getErrorMessage(code) {
-            switch(code) {
-                case 'auth/user-not-found': return 'Utente non trovato.';
-                case 'auth/wrong-password': return 'Password errata.';
-                case 'auth/email-already-in-use': return 'Email già registrata.';
-                case 'auth/weak-password': return 'Password troppo debole (min 6 caratteri).';
-                case 'auth/invalid-email': return 'Email non valida.';
-                case 'auth/popup-closed-by-user': return 'Accesso annullato.';
-                default: return 'Errore: ' + code;
-            }
-        }
 
         auth.onAuthStateChanged((user) => {
-            if (user) {
-                handleAuthSuccess(user);
-            } else {
+            if (user) handleAuthSuccess(user);
+            else {
                 loginView.classList.remove('hidden');
+                appView.classList.add('hidden');
             }
         });
 
-        // --- REAL-TIME CHAT LOGIC ---
+        // --- CHAT LOGIC ---
 
-        // Mock Contacts Data
-        const contacts = [
-            {
+        async function loadContacts() {
+            contactListEl.innerHTML = '';
+            
+            // 1. Add General Chat (Static)
+            addContactToSidebar({
                 id: "general_chat",
                 name: "Chat Generale",
-                role: "Canale Pubblico",
+                role: "Pubblica",
                 avatar: "https://ui-avatars.com/api/?name=General&background=6366f1&color=fff",
-                status: "online",
-                lastMessage: "...",
-                time: "",
-                unread: 0
-            },
-            {
-                id: "dev_team",
-                name: "Dev Team",
-                role: "Gruppo Sviluppatori",
-                avatar: "https://ui-avatars.com/api/?name=Dev+Team&background=10b981&color=fff",
-                status: "group",
-                lastMessage: "...",
-                time: "",
-                unread: 0
-            }
-        ];
+                lastMsg: "Benvenuto su RL Chat!",
+                time: ""
+            }, true);
 
-        let activeContactId = null;
-        let unsubscribeMessages = null; // To stop listening when switching chats
-        let currentUser = null;
-
-        const contactListEl = document.getElementById('contact-list');
-        const messagesContainer = document.getElementById('messages-container');
-        const messageInput = document.getElementById('message-input');
-        const sendBtn = document.getElementById('send-btn');
-        const sidebar = document.getElementById('sidebar');
-        const emptyState = document.getElementById('empty-state');
-        const activeChatInterface = document.getElementById('active-chat-interface');
-        const backBtn = document.getElementById('back-btn');
-        const chatAvatar = document.getElementById('chat-avatar');
-        const chatName = document.getElementById('chat-name');
-        const chatSubtitle = document.getElementById('chat-subtitle');
-        const chatStatusDot = document.getElementById('chat-status-dot');
-
-        function initChatApp(user) {
-            currentUser = user;
-            renderContacts();
-            if (window.innerWidth >= 640) {
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-            }
-        }
-
-        function renderContacts() {
-            contactListEl.innerHTML = '';
-            contacts.forEach(contact => {
-                const isActive = contact.id === activeContactId;
-                const div = document.createElement('div');
-                div.className = `group flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition-all duration-200 ${isActive ? 'bg-indigo-600/10 border border-indigo-500/20' : 'hover:bg-slate-800/50 border border-transparent'}`;
-                div.onclick = () => loadChat(contact.id);
-
-                div.innerHTML = `
-                    <div class="relative">
-                        <img src="${contact.avatar}" alt="${contact.name}" class="w-12 h-12 rounded-full object-cover">
-                        ${contact.status === 'online' ? `<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-900"></div>` : ''}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-baseline mb-1">
-                            <h4 class="text-sm font-semibold truncate ${isActive ? 'text-indigo-300' : 'text-slate-200'}">${contact.name}</h4>
-                            <span class="text-xs ${isActive ? 'text-indigo-400' : 'text-slate-500'}">${contact.role}</span>
-                        </div>
-                    </div>
-                `;
-                contactListEl.appendChild(div);
+            // 2. Load Private Chats from Firestore (User's contacts)
+            // In a real app, you'd have a 'contacts' subcollection. 
+            // For simplicity, we will scan messages to find unique chatIds the user participated in.
+            // But to keep it clean, let's just rely on the "Add Contact" feature saving to local state for now
+            // or we can fetch from a 'chats' collection if we implemented that fully.
+            
+            // For this demo, we will check localStorage for saved contacts to persist them simply
+            const savedContacts = JSON.parse(localStorage.getItem(`rl_contacts_${currentUser.uid}`) || "[]");
+            savedContacts.forEach(c => {
+                addContactToSidebar(c, false);
             });
         }
 
-        function loadChat(id) {
-            activeContactId = id;
-            const contact = contacts.find(c => c.id === id);
-            renderContacts();
+        function addContactToSidebar(contact, isTop) {
+            const div = document.createElement('div');
+            const isActive = contact.id === currentChatId;
+            div.className = `group flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${isActive ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-slate-800/50 border border-transparent'}`;
+            div.onclick = () => openChat(contact);
+
+            div.innerHTML = `
+                <img src="${contact.avatar}" class="w-10 h-10 rounded-full object-cover">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-baseline">
+                        <h4 class="text-sm font-semibold text-slate-200 truncate">${contact.name}</h4>
+                        <span class="text-[10px] text-slate-500">${contact.time || ''}</span>
+                    </div>
+                    <p class="text-xs text-slate-400 truncate">${contact.lastMsg || 'Nuova chat'}</p>
+                </div>
+            `;
             
-            if (window.innerWidth < 640) {
-                sidebar.classList.add('-translate-x-full');
-                setTimeout(() => sidebar.classList.add('hidden'), 300);
-                activeChatInterface.classList.remove('hidden');
-            }
-
-            emptyState.classList.add('hidden');
-            activeChatInterface.classList.remove('hidden');
-            activeChatInterface.classList.add('flex');
-
-            chatAvatar.src = contact.avatar;
-            chatName.textContent = contact.name;
-            chatSubtitle.textContent = contact.role;
-            
-            if(contact.status === 'online') {
-                chatStatusDot.classList.remove('hidden');
-                chatSubtitle.textContent = "Online";
-                chatSubtitle.className = "text-emerald-400 text-xs font-medium";
-            } else {
-                chatStatusDot.classList.add('hidden');
-                chatSubtitle.className = "text-slate-500 text-xs font-medium";
-            }
-
-            // Start Real-time Listener for this chat
-            listenToMessages(id);
+            if (isTop) contactListEl.prepend(div);
+            else contactListEl.appendChild(div);
         }
 
-        function listenToMessages(chatId) {
-            // Unsubscribe from previous chat if exists
-            if (unsubscribeMessages) {
-                unsubscribeMessages();
+        function openChat(contact) {
+            currentChatId = contact.id;
+            
+            // Mobile View Logic
+            if (window.innerWidth < 640) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
             }
 
-            messagesContainer.innerHTML = '<div class="flex justify-center my-4"><span class="text-xs font-medium text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full">Caricamento messaggi...</span></div>';
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('active-chat-interface').classList.remove('hidden');
+            
+            // Update Header
+            document.getElementById('chat-name').textContent = contact.name;
+            document.getElementById('chat-subtitle').textContent = contact.role || 'Privato';
+            document.getElementById('chat-avatar').src = contact.avatar;
 
-            // Listen to Firestore Collection 'messages' filtered by chatId
-            // Note: If index is missing, check console for link to create it
+            // Refresh Sidebar Highlights
+            loadContacts(); // Re-render to show active state
+
+            // Listen to Messages
+            if (unsubscribeMessages) unsubscribeMessages();
+
+            messagesContainer.innerHTML = '<div class="flex justify-center mt-10"><div class="loader"></div></div>';
+
             unsubscribeMessages = db.collection('messages')
-                .where('chatId', '==', chatId)
+                .where('chatId', '==', contact.id)
                 .orderBy('timestamp', 'asc')
-                .onSnapshot((snapshot) => {
-                    messagesContainer.innerHTML = '<div class="flex justify-center my-4"><span class="text-xs font-medium text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full">Oggi</span></div>';
-                    
+                .onSnapshot(snapshot => {
+                    messagesContainer.innerHTML = '';
                     if (snapshot.empty) {
-                        messagesContainer.innerHTML += '<div class="text-center text-slate-500 text-sm mt-10">Nessun messaggio. Inizia la conversazione!</div>';
+                        messagesContainer.innerHTML = '<div class="text-center text-slate-500 text-xs mt-10">Nessun messaggio ancora.</div>';
                     }
-
-                    snapshot.forEach((doc) => {
-                        const msg = doc.data();
-                        appendMessageToDOM(msg);
+                    snapshot.forEach(doc => {
+                        renderMessage(doc.data());
                     });
                     scrollToBottom();
-                }, (error) => {
-                    console.error("Error fetching messages: ", error);
-                    if (error.code === 'failed-precondition') {
-                        messagesContainer.innerHTML = '<div class="text-center text-yellow-400 text-sm mt-10">Indice non creato. Clicca sul link in console per crearlo.</div>';
-                    } else {
-                        messagesContainer.innerHTML = '<div class="text-center text-red-400 text-sm mt-10">Errore nel caricamento messaggi. Controlla la console.</div>';
-                    }
                 });
         }
 
-        function appendMessageToDOM(msg) {
+        function renderMessage(msg) {
             const isMe = msg.senderId === currentUser.uid;
+            const date = msg.timestamp ? msg.timestamp.toDate() : new Date();
+            const time = `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+
             const div = document.createElement('div');
             div.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'} animate-slide-up`;
             
-            let nameHtml = '';
-            if (!isMe && msg.senderName) {
-                nameHtml = `<span class="text-indigo-400 text-xs font-bold mb-1 ml-1 block">${msg.senderName}</span>`;
-            }
-
-            // Format time
-            const date = msg.timestamp ? msg.timestamp.toDate() : new Date();
-            const timeString = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-
             div.innerHTML = `
-                <div class="relative max-w-[75%] px-5 py-3 text-[15px] leading-relaxed ${isMe ? 'msg-sent text-white' : 'msg-received text-slate-200'} flex flex-col mb-1">
-                    ${nameHtml}
-                    <span class="break-words whitespace-pre-wrap">${msg.text}</span>
-                    <div class="self-end flex items-center gap-1 mt-1 opacity-70">
-                        <span class="text-[10px] font-medium">${timeString}</span>
-                        ${isMe ? '<i class="ph-fill ph-checks text-xs"></i>' : ''}
+                <div class="max-w-[80%] px-4 py-2 text-sm ${isMe ? 'msg-sent text-white' : 'msg-received text-slate-200'}">
+                    <p class="break-words">${msg.text}</p>
+                    <div class="text-[10px] opacity-70 text-right mt-1 flex items-center justify-end gap-1">
+                        ${time}
+                        ${isMe ? '<i class="ph-fill ph-checks"></i>' : ''}
                     </div>
                 </div>
             `;
@@ -562,64 +562,122 @@
 
         async function sendMessage() {
             const text = messageInput.value.trim();
-            if (!text || !activeContactId) return;
+            if (!text || !currentChatId) return;
 
             messageInput.value = '';
             messageInput.style.height = 'auto';
 
-            // Save to Firestore
             try {
                 await db.collection('messages').add({
-                    chatId: activeContactId,
+                    chatId: currentChatId,
                     text: text,
                     senderId: currentUser.uid,
-                    senderName: currentUser.displayName || currentUser.email.split('@')[0],
+                    senderName: currentUser.displayName,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-            } catch (error) {
-                console.error("Error sending message: ", error);
-                alert("Errore nell'invio: " + error.message);
+            } catch (e) {
+                console.error("Error sending:", e);
+                alert("Errore invio. Controlla regole Firestore.");
             }
         }
 
-        messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-
         sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keydown', (e) => {
+        messageInput.addEventListener('keydown', e => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
             }
         });
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
 
-        backBtn.addEventListener('click', () => {
-            sidebar.classList.remove('hidden');
-            setTimeout(() => sidebar.classList.remove('-translate-x-full'), 10);
-            activeContactId = null;
-            renderContacts();
+        // Back Button Mobile
+        document.getElementById('back-btn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.remove('-translate-x-full');
+            currentChatId = null;
+            document.getElementById('active-chat-interface').classList.add('hidden');
+            document.getElementById('empty-state').classList.remove('hidden');
+        });
+
+        // --- SETTINGS LOGIC ---
+        document.getElementById('settings-btn').addEventListener('click', () => {
+            settingsModal.classList.remove('hidden');
+        });
+        document.getElementById('close-settings').addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+        });
+
+        // Add Contact Logic
+        document.getElementById('add-contact-btn').addEventListener('click', async () => {
+            const input = document.getElementById('add-contact-input');
+            const targetId = input.value.trim().toUpperCase();
+            const errorDiv = document.getElementById('add-contact-error');
+            
+            if (targetId.length !== 10) {
+                errorDiv.textContent = "L'ID deve essere di 10 caratteri.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            // Search User in Firestore
+            try {
+                const snapshot = await db.collection('users').where('rlId', '==', targetId).get();
+                
+                if (snapshot.empty) {
+                    errorDiv.textContent = "Utente non trovato con questo ID.";
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                const userData = snapshot.docs[0].data();
+                if (userData.uid === currentUser.uid) {
+                    errorDiv.textContent = "Non puoi aggiungere te stesso.";
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                // Create Chat ID (Combination of UIDs sorted)
+                const uids = [currentUser.uid, userData.uid].sort();
+                const chatId = uids.join('_');
+
+                const newContact = {
+                    id: chatId,
+                    name: userData.displayName,
+                    role: "Privato",
+                    avatar: userData.photoURL,
+                    lastMsg: "Appena aggiunto",
+                    time: "Adesso"
+                };
+
+                // Save to LocalStorage for sidebar persistence (Simple way)
+                const saved = JSON.parse(localStorage.getItem(`rl_contacts_${currentUser.uid}`) || "[]");
+                // Avoid duplicates
+                if (!saved.some(c => c.id === chatId)) {
+                    saved.push(newContact);
+                    localStorage.setItem(`rl_contacts_${currentUser.uid}`, JSON.stringify(saved));
+                    
+                    // Refresh UI
+                    addContactToSidebar(newContact, false);
+                    input.value = '';
+                    settingsModal.classList.add('hidden');
+                    
+                    // Auto open chat
+                    openChat(newContact);
+                } else {
+                    errorDiv.textContent = "Contatto già esistente.";
+                    errorDiv.classList.remove('hidden');
+                }
+
+            } catch (err) {
+                console.error(err);
+                errorDiv.textContent = "Errore nella ricerca.";
+                errorDiv.classList.remove('hidden');
+            }
         });
 
     </script>
 </body>
 </html>
 
-
-
-              <script>
-                              rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
-    }
-  }
-}
-
-
-              </script>
-                        </body>
-                        </html>
-                    
