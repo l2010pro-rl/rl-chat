@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Chat</title>
+    <title>Nexus Chat - Firebase</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,13 +11,17 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Google Fonts (Outfit & Inter) -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDKs (Compat version for standalone HTML) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a; /* Slate 900 */
+            background-color: #0f172a;
             color: #e2e8f0;
             overflow: hidden;
         }
@@ -26,32 +30,12 @@
             font-family: 'Outfit', sans-serif;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155; 
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569; 
-        }
-
-        /* Glassmorphism Utilities */
+        /* Glassmorphism */
         .glass {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(20px);
         }
 
         /* Message Bubbles */
@@ -76,23 +60,6 @@
             animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        @keyframes pulse-ring {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            100% { transform: scale(2); opacity: 0; }
-        }
-        
-        .status-dot::before {
-            content: '';
-            position: absolute;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: #10b981;
-            border-radius: 50%;
-            z-index: -1;
-            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-        }
-
-        /* Background Mesh Gradient */
         .bg-mesh {
             background-color: #0f172a;
             background-image: 
@@ -100,12 +67,81 @@
                 radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
                 radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
         }
+
+        /* Loader */
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top: 3px solid #6366f1;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="h-screen w-screen flex items-center justify-center bg-mesh selection:bg-indigo-500 selection:text-white">
 
-    <!-- Main App Container -->
-    <div class="w-full h-full max-w-[1600px] flex overflow-hidden relative sm:h-[90vh] sm:w-[95vw] sm:rounded-3xl shadow-2xl glass border border-slate-700/50">
+    <!-- LOGIN VIEW -->
+    <div id="login-view" class="w-full max-w-md p-6 z-50 transition-opacity duration-500">
+        <div class="glass rounded-3xl p-8 shadow-2xl border border-slate-700/50 relative overflow-hidden">
+            <!-- Decorative Glow -->
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+            
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 mb-4">
+                    <i class="ph-bold ph-chat-teardrop-text text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold brand-font text-white mb-2">Nexus Chat</h1>
+                <p class="text-slate-400 text-sm">Accedi per connetterti con il tuo team.</p>
+            </div>
+
+            <form id="email-login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1 ml-1">Email</label>
+                    <div class="relative">
+                        <i class="ph ph-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input type="email" id="email" required class="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder-slate-600" placeholder="nome@esempio.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1 ml-1">Password</label>
+                    <div class="relative">
+                        <i class="ph ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input type="password" id="password" required class="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder-slate-600" placeholder="••••••••">
+                    </div>
+                </div>
+                
+                <div id="login-error" class="text-red-400 text-xs text-center hidden bg-red-500/10 py-2 rounded-lg border border-red-500/20"></div>
+
+                <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex justify-center items-center gap-2">
+                    <span>Accedi</span>
+                </button>
+            </form>
+
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700"></div></div>
+                <div class="relative flex justify-center text-xs uppercase"><span class="bg-[#162032] px-2 text-slate-500 rounded">Oppure continua con</span></div>
+            </div>
+
+            <button id="google-btn" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-3 rounded-xl border border-slate-700 transition-all active:scale-95 flex justify-center items-center gap-3">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Google
+            </button>
+            
+            <p class="mt-6 text-center text-xs text-slate-500">
+                Non hai un account? <a href="#" id="toggle-register" class="text-indigo-400 hover:text-indigo-300">Registrati</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- CHAT APP VIEW (Hidden by default) -->
+    <div id="app-view" class="w-full h-full max-w-[1600px] flex overflow-hidden relative sm:h-[90vh] sm:w-[95vw] sm:rounded-3xl shadow-2xl glass border border-slate-700/50 hidden opacity-0 transition-opacity duration-500">
         
         <!-- Sidebar -->
         <aside id="sidebar" class="w-full sm:w-[380px] flex flex-col border-r border-slate-700/50 bg-slate-900/80 z-20 transition-transform duration-300 absolute sm:relative h-full backdrop-blur-xl">
@@ -118,9 +154,15 @@
                     </div>
                     <span class="text-xl font-bold brand-font tracking-wide text-white">Nexus</span>
                 </div>
-                <button class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-colors">
-                    <i class="ph ph-gear text-xl"></i>
-                </button>
+                <div class="flex items-center gap-3">
+                     <div class="text-right hidden md:block">
+                        <div id="user-name-display" class="text-xs font-bold text-white">Utente</div>
+                        <div id="user-email-display" class="text-[10px] text-slate-400 truncate max-w-[100px]">email@test.it</div>
+                    </div>
+                    <button id="logout-btn" class="w-8 h-8 rounded-lg hover:bg-red-500/10 flex items-center justify-center text-slate-400 hover:text-red-400 transition-colors" title="Esci">
+                        <i class="ph ph-sign-out text-xl"></i>
+                    </button>
+                </div>
             </header>
 
             <!-- Search -->
@@ -129,13 +171,6 @@
                     <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
                     <input type="text" placeholder="Cerca conversazioni..." class="w-full bg-slate-800/50 border border-slate-700 text-slate-200 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-indigo-500/50 focus:bg-slate-800 transition-all placeholder-slate-500">
                 </div>
-            </div>
-
-            <!-- Filters -->
-            <div class="px-6 flex gap-3 mb-4 overflow-x-auto no-scrollbar">
-                <button class="px-4 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-medium shadow-lg shadow-indigo-500/20 whitespace-nowrap">Tutti</button>
-                <button class="px-4 py-1.5 rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white text-xs font-medium transition-colors whitespace-nowrap">Non letti</button>
-                <button class="px-4 py-1.5 rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white text-xs font-medium transition-colors whitespace-nowrap">Gruppi</button>
             </div>
 
             <!-- List -->
@@ -153,7 +188,7 @@
                     <i class="ph-duotone ph-planet text-6xl text-indigo-400"></i>
                 </div>
                 <h2 class="text-3xl font-bold text-white mb-2 brand-font">Benvenuto su Nexus</h2>
-                <p class="text-slate-400 max-w-md">Seleziona una chat per iniziare a comunicare con il tuo team in tempo reale.</p>
+                <p class="text-slate-400 max-w-md">Seleziona una chat per iniziare a comunicare.</p>
             </div>
 
             <!-- Active Chat -->
@@ -177,36 +212,21 @@
                     <div class="flex gap-2">
                         <button class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-all hover:text-indigo-400"><i class="ph ph-phone text-xl"></i></button>
                         <button class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-all hover:text-indigo-400"><i class="ph ph-video-camera text-xl"></i></button>
-                        <button class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-all hover:text-indigo-400"><i class="ph ph-dots-three-vertical text-xl"></i></button>
                     </div>
                 </header>
 
                 <!-- Messages -->
                 <div id="messages-container" class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
-                    <!-- Date Separator Example -->
-                    <div class="flex justify-center my-4">
-                        <span class="text-xs font-medium text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full">Oggi</span>
-                    </div>
                     <!-- Messages injected here -->
                 </div>
 
                 <!-- Input Area -->
                 <footer class="p-4 glass border-t border-slate-700/50">
                     <div class="max-w-4xl mx-auto flex items-end gap-3 bg-slate-800/50 p-2 rounded-3xl border border-slate-700/50 focus-within:border-indigo-500/50 focus-within:bg-slate-800 transition-all shadow-lg">
-                        <button class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-400 hover:bg-slate-700/50 transition-colors shrink-0">
-                            <i class="ph ph-plus text-xl"></i>
-                        </button>
-                        
                         <textarea id="message-input" rows="1" placeholder="Scrivi un messaggio..." class="w-full bg-transparent text-slate-200 placeholder-slate-500 text-sm py-3 px-2 focus:outline-none resize-none max-h-32 scrollbar-hide"></textarea>
-
-                        <div class="flex items-center gap-1 shrink-0">
-                            <button id="emoji-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-yellow-400 hover:bg-slate-700/50 transition-colors">
-                                <i class="ph ph-smiley text-xl"></i>
-                            </button>
-                            <button id="send-btn" class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-500 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                <i class="ph-bold ph-paper-plane-right text-lg"></i>
-                            </button>
-                        </div>
+                        <button id="send-btn" class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-500 hover:scale-105 active:scale-95 transition-all">
+                            <i class="ph-bold ph-paper-plane-right text-lg"></i>
+                        </button>
                     </div>
                 </footer>
             </div>
@@ -214,7 +234,166 @@
     </div>
 
     <script>
-        // --- Data ---
+        // --- FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVJa4vv1BmK_GOB0RwJxDHoAySNlhjIc8",
+            authDomain: "rl-chats.firebaseapp.com",
+            projectId: "rl-chats",
+            storageBucket: "rl-chats.firebasestorage.app",
+            messagingSenderId: "339897083919",
+            appId: "1:339897083919:web:8831b7ca535559ae6c9b7a"
+        };
+
+        // Initialize Firebase
+        let auth;
+        let provider;
+        let isMockMode = false;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            provider = new firebase.auth.GoogleAuthProvider();
+        } catch (e) {
+            console.error("Errore inizializzazione Firebase:", e);
+            isMockMode = true;
+        }
+
+        // --- DOM ELEMENTS ---
+        const loginView = document.getElementById('login-view');
+        const appView = document.getElementById('app-view');
+        const emailForm = document.getElementById('email-login-form');
+        const googleBtn = document.getElementById('google-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const toggleRegister = document.getElementById('toggle-register');
+        const loginError = document.getElementById('login-error');
+        const loginBtnText = document.querySelector('#login-btn span');
+        const userNameDisplay = document.getElementById('user-name-display');
+        const userEmailDisplay = document.getElementById('user-email-display');
+        
+        const loginLoader = document.createElement('div');
+        loginLoader.className = 'loader';
+
+        // --- AUTH LOGIC ---
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                loginBtnText.textContent = 'Accesso in corso...';
+                document.getElementById('login-btn').appendChild(loginLoader);
+                document.getElementById('login-btn').disabled = true;
+            } else {
+                loginBtnText.textContent = 'Accedi';
+                loginLoader.remove();
+                document.getElementById('login-btn').disabled = false;
+            }
+        }
+
+        function showError(msg) {
+            loginError.textContent = msg;
+            loginError.classList.remove('hidden');
+        }
+
+        function handleAuthSuccess(user) {
+            console.log("User logged in:", user.email);
+            
+            // Update UI with User Info
+            userNameDisplay.textContent = user.displayName || user.email.split('@')[0];
+            userEmailDisplay.textContent = user.email;
+
+            // Transition
+            loginView.style.opacity = '0';
+            setTimeout(() => {
+                loginView.classList.add('hidden');
+                appView.classList.remove('hidden');
+                // Trigger reflow
+                void appView.offsetWidth; 
+                appView.style.opacity = '1';
+                initChatApp(user);
+            }, 500);
+        }
+
+        // Email Login Handler
+        emailForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const isRegistering = toggleRegister.textContent === "Accedi"; // Se dice "Accedi", siamo in modalità registrazione
+
+            loginError.classList.add('hidden');
+            setLoading(true);
+
+            if (isRegistering) {
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        return userCredential.user.updateProfile({ displayName: email.split('@')[0] })
+                            .then(() => userCredential.user);
+                    })
+                    .then((user) => handleAuthSuccess(user))
+                    .catch((error) => showError(getErrorMessage(error.code)))
+                    .finally(() => setLoading(false));
+            } else {
+                auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => handleAuthSuccess(userCredential.user))
+                    .catch((error) => showError(getErrorMessage(error.code)))
+                    .finally(() => setLoading(false));
+            }
+        });
+
+        // Google Login Handler
+        googleBtn.addEventListener('click', () => {
+            loginError.classList.add('hidden');
+            auth.signInWithPopup(provider)
+                .then((result) => handleAuthSuccess(result.user))
+                .catch((error) => showError(getErrorMessage(error.code)));
+        });
+
+        // Logout Handler
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut();
+            window.location.reload();
+        });
+
+        // Toggle Register/Login Text
+        let isLoginMode = true;
+        toggleRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLoginMode = !isLoginMode;
+            if (isLoginMode) {
+                toggleRegister.textContent = "Registrati";
+                document.querySelector('button[type="submit"] span').textContent = "Accedi";
+                document.querySelector('p.text-xs.text-slate-500').innerHTML = `Non hai un account? <a href="#" id="toggle-register" class="text-indigo-400 hover:text-indigo-300">Registrati</a>`;
+            } else {
+                toggleRegister.textContent = "Accedi";
+                document.querySelector('button[type="submit"] span').textContent = "Registrati";
+                document.querySelector('p.text-xs.text-slate-500').innerHTML = `Hai già un account? <a href="#" id="toggle-register" class="text-indigo-400 hover:text-indigo-300">Accedi</a>`;
+            }
+            // Re-attach listener because innerHTML destroyed it
+            document.getElementById('toggle-register').addEventListener('click', arguments.callee);
+        });
+
+        // Helper for Error Messages
+        function getErrorMessage(code) {
+            switch(code) {
+                case 'auth/user-not-found': return 'Utente non trovato.';
+                case 'auth/wrong-password': return 'Password errata.';
+                case 'auth/email-already-in-use': return 'Email già registrata.';
+                case 'auth/weak-password': return 'Password troppo debole (min 6 caratteri).';
+                case 'auth/invalid-email': return 'Email non valida.';
+                case 'auth/popup-closed-by-user': return 'Accesso annullato.';
+                default: return 'Errore di autenticazione: ' + code;
+            }
+        }
+
+        // Check Auth State on Load
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                handleAuthSuccess(user);
+            } else {
+                loginView.classList.remove('hidden');
+            }
+        });
+
+        // --- CHAT APP LOGIC ---
+
         const contacts = [
             {
                 id: 1,
@@ -222,14 +401,13 @@
                 role: "Product Designer",
                 avatar: "https://image.qwenlm.ai/public_source/d2d9ffc3-2da1-457d-aaff-4d913aad2da0/1e1258756-9d2c-4a9e-98f7-46fc5a72268f.png",
                 status: "online",
-                lastMessage: "Il mockup è pronto, dai un'occhiata! 🎨",
+                lastMessage: "Il mockup è pronto! 🎨",
                 time: "10:42",
                 unread: 2,
                 messages: [
                     { id: 1, text: "Ciao Elisa, come procede con la UI?", sender: "me", time: "10:30" },
-                    { id: 2, text: "Ciao! Sto giusto rifinendo i dettagli della dark mode.", sender: "them", time: "10:35" },
-                    { id: 3, text: "Perfetto, non vedo l'ora di vederlo.", sender: "me", time: "10:36" },
-                    { id: 4, text: "Il mockup è pronto, dai un'occhiata! 🎨", sender: "them", time: "10:42" }
+                    { id: 2, text: "Ciao! Sto giusto rifinendo i dettagli.", sender: "them", time: "10:35" },
+                    { id: 3, text: "Il mockup è pronto! 🎨", sender: "them", time: "10:42" }
                 ]
             },
             {
@@ -238,13 +416,12 @@
                 role: "Gruppo • 8 Membri",
                 avatar: "https://ui-avatars.com/api/?name=Dev+Team&background=6366f1&color=fff&font-size=0.4",
                 status: "group",
-                lastMessage: "Marco: Deploy effettuato con successo 🚀",
+                lastMessage: "Marco: Deploy effettuato 🚀",
                 time: "09:15",
                 unread: 0,
                 messages: [
-                    { id: 1, text: "Ragazzi, occhio al merge conflict su main.", sender: "them", time: "09:00", name: "Sara" },
-                    { id: 2, text: "Ci sto guardando ora.", sender: "me", time: "09:05" },
-                    { id: 3, text: "Deploy effettuato con successo 🚀", sender: "them", time: "09:15", name: "Marco" }
+                    { id: 1, text: "Ragazzi, occhio al merge conflict.", sender: "them", time: "09:00", name: "Sara" },
+                    { id: 2, text: "Deploy effettuato 🚀", sender: "them", time: "09:15", name: "Marco" }
                 ]
             },
             {
@@ -253,34 +430,17 @@
                 role: "Marketing Lead",
                 avatar: "https://image.qwenlm.ai/public_source/d2d9ffc3-2da1-457d-aaff-4d913aad2da0/1df80f0f5-5ef8-4e7b-a196-07f2ab7d54eb.png",
                 status: "offline",
-                lastMessage: "Ok, sentiamoci domani mattina.",
+                lastMessage: "Ci sentiamo domani.",
                 time: "Ieri",
                 unread: 0,
                 messages: [
-                    { id: 1, text: "Hai visto le analytics della campagna?", sender: "them", time: "Ieri 16:00" },
-                    { id: 2, text: "Sì, i numeri sono ottimi!", sender: "me", time: "Ieri 16:30" },
-                    { id: 3, text: "Ok, sentiamoci domani mattina.", sender: "them", time: "Ieri 17:00" }
-                ]
-            },
-            {
-                id: 4,
-                name: "Sarah Connor",
-                role: "Security",
-                avatar: "https://image.qwenlm.ai/public_source/d2d9ffc3-2da1-457d-aaff-4d913aad2da0/1f7c3a8d1-c5df-4aec-b396-40b368aae079.png",
-                status: "online",
-                lastMessage: "Abbiamo un problema col firewall.",
-                time: "Ieri",
-                unread: 1,
-                messages: [
-                    { id: 1, text: "Tutto sicuro?", sender: "me", time: "Ieri 12:00" },
-                    { id: 2, text: "Abbiamo un problema col firewall.", sender: "them", time: "Ieri 12:05" }
+                    { id: 1, text: "Hai visto le analytics?", sender: "them", time: "Ieri 16:00" },
+                    { id: 2, text: "Ci sentiamo domani.", sender: "them", time: "Ieri 17:00" }
                 ]
             }
         ];
 
         let activeContactId = null;
-
-        // --- DOM Elements ---
         const contactListEl = document.getElementById('contact-list');
         const messagesContainer = document.getElementById('messages-container');
         const messageInput = document.getElementById('message-input');
@@ -289,13 +449,18 @@
         const emptyState = document.getElementById('empty-state');
         const activeChatInterface = document.getElementById('active-chat-interface');
         const backBtn = document.getElementById('back-btn');
-        
         const chatAvatar = document.getElementById('chat-avatar');
         const chatName = document.getElementById('chat-name');
         const chatSubtitle = document.getElementById('chat-subtitle');
         const chatStatusDot = document.getElementById('chat-status-dot');
 
-        // --- Functions ---
+        function initChatApp(user) {
+            renderContacts();
+            if (window.innerWidth >= 640) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            }
+        }
 
         function renderContacts() {
             contactListEl.innerHTML = '';
@@ -328,10 +493,8 @@
         function loadChat(id) {
             activeContactId = id;
             const contact = contacts.find(c => c.id === id);
-            
             renderContacts();
             
-            // Mobile Logic
             if (window.innerWidth < 640) {
                 sidebar.classList.add('-translate-x-full');
                 setTimeout(() => sidebar.classList.add('hidden'), 300);
@@ -342,7 +505,6 @@
             activeChatInterface.classList.remove('hidden');
             activeChatInterface.classList.add('flex');
 
-            // Header Update
             chatAvatar.src = contact.avatar;
             chatName.textContent = contact.name;
             chatSubtitle.textContent = contact.role;
@@ -361,9 +523,7 @@
 
         function renderMessages(messages) {
             messagesContainer.innerHTML = '<div class="flex justify-center my-4"><span class="text-xs font-medium text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full">Oggi</span></div>';
-            messages.forEach(msg => {
-                appendMessageToDOM(msg);
-            });
+            messages.forEach(msg => appendMessageToDOM(msg));
             scrollToBottom();
         }
 
@@ -402,12 +562,7 @@
             const now = new Date();
             const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-            const newMessage = {
-                id: Date.now(),
-                text: text,
-                sender: 'me',
-                time: timeString
-            };
+            const newMessage = { id: Date.now(), text: text, sender: 'me', time: timeString };
 
             contact.messages.push(newMessage);
             contact.lastMessage = text;
@@ -415,23 +570,17 @@
 
             appendMessageToDOM(newMessage);
             scrollToBottom();
-            
-            // Reset Input
             messageInput.value = '';
             messageInput.style.height = 'auto';
-            
             renderContacts();
         }
 
-        // Auto-resize textarea
         messageInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
-            if(this.value === '') this.style.height = 'auto';
         });
 
         sendBtn.addEventListener('click', sendMessage);
-
         messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -441,20 +590,10 @@
 
         backBtn.addEventListener('click', () => {
             sidebar.classList.remove('hidden');
-            // Small delay to allow display:block to apply before transform
-            setTimeout(() => {
-                sidebar.classList.remove('-translate-x-full');
-            }, 10);
+            setTimeout(() => sidebar.classList.remove('-translate-x-full'), 10);
             activeContactId = null;
             renderContacts();
         });
-
-        // Init
-        renderContacts();
-        if (window.innerWidth >= 640) {
-            emptyState.classList.remove('hidden');
-            emptyState.classList.add('flex');
-        }
 
     </script>
 </body>
