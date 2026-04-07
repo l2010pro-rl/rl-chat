@@ -1,24 +1,9 @@
-
-                        <!DOCTYPE html>
-                        <html lang="en">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <style>
-                body {
-                  background-color: white; /* Ensure the iframe has a white background */
-                }
-
-                
-              </style>
-                        </head>
-                        <body>
-                            <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RL Chat</title>
+    <title>RL Chat - Advanced</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,7 +14,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDKs (Compat) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -67,9 +52,31 @@
         /* Toggle Switch */
         .toggle-checkbox:checked { right: 0; border-color: #6366f1; }
         .toggle-checkbox:checked + .toggle-label { background-color: #6366f1; }
+
+        /* Image Preview */
+        .msg-image { max-width: 250px; border-radius: 12px; margin-top: 5px; cursor: pointer; transition: transform 0.2s; }
+        .msg-image:hover { transform: scale(1.02); }
+
+        /* Context Menu */
+        #context-menu {
+            position: absolute;
+            z-index: 1000;
+            display: none;
+            backdrop-filter: blur(10px);
+        }
     </style>
 </head>
 <body class="bg-mesh text-slate-200">
+
+    <!-- CONTEXT MENU (Right Click) -->
+    <div id="context-menu" class="bg-slate-800/90 border border-slate-700 rounded-lg shadow-xl py-1 w-40 animate-fade-in">
+        <button id="ctx-copy" class="w-full text-left px-4 py-2 text-sm hover:bg-indigo-600/20 hover:text-indigo-400 flex items-center gap-2">
+            <i class="ph ph-copy"></i> Copia
+        </button>
+        <button id="ctx-delete" class="w-full text-left px-4 py-2 text-sm hover:bg-red-600/20 hover:text-red-400 flex items-center gap-2">
+            <i class="ph ph-trash"></i> Elimina
+        </button>
+    </div>
 
     <!-- LOGIN VIEW -->
     <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm transition-opacity duration-500">
@@ -166,8 +173,20 @@
                     </div>
                 </header>
                 <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth bg-mesh/30"></div>
+                
+                <!-- Typing Indicator -->
+                <div id="typing-indicator" class="hidden px-6 py-1 text-xs text-slate-400 italic absolute bottom-20 left-0 animate-pulse">
+                    Sta scrivendo...
+                </div>
+
                 <footer class="p-3 glass-header border-t border-slate-700/50">
                     <div class="max-w-5xl mx-auto flex items-end gap-2 bg-slate-800/50 p-1.5 rounded-2xl border border-slate-700/50 focus-within:border-indigo-500/50 transition-all">
+                        <!-- Image Upload Button -->
+                        <input type="file" id="image-input" accept="image/*" class="hidden">
+                        <button onclick="document.getElementById('image-input').click()" class="w-9 h-9 rounded-xl hover:bg-slate-700/50 flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-colors shrink-0 mb-0.5">
+                            <i class="ph ph-image text-xl"></i>
+                        </button>
+                        
                         <textarea id="message-input" rows="1" placeholder="Scrivi un messaggio..." class="w-full bg-transparent text-slate-200 placeholder-slate-500 text-sm py-2.5 px-3 focus:outline-none resize-none max-h-32 scrollbar-hide"></textarea>
                         <button id="send-btn" class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-500 hover:scale-105 active:scale-95 transition-all shrink-0 mb-0.5">
                             <i class="ph-bold ph-paper-plane-right text-lg"></i>
@@ -238,7 +257,7 @@
                 </div>
 
                 <div class="p-4 border-t border-slate-800 bg-slate-900 flex justify-between items-center">
-                    <span class="text-[10px] text-slate-600 font-mono">v1.2.0 • RL Chat</span>
+                    <span class="text-[10px] text-slate-600 font-mono">v1.3.0 • RL Chat</span>
                     <button id="logout-btn-settings" class="text-red-400 hover:text-red-300 text-sm font-medium flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors"><i class="ph ph-sign-out"></i> Esci</button>
                 </div>
             </div>
@@ -256,15 +275,7 @@
             appId: "1:339897083919:web:8831b7ca535559ae6c9b7a"
         };
 
-        // Initialize Firebase
-        try {
-            firebase.initializeApp(firebaseConfig);
-            console.log("Firebase Inizializzato");
-        } catch (e) {
-            console.error("Errore Inizializzazione:", e);
-            alert("Errore configurazione Firebase.");
-        }
-        
+        firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         const provider = new firebase.auth.GoogleAuthProvider();
@@ -291,6 +302,8 @@
         let currentUser = null;
         let currentChatId = null;
         let unsubscribeMessages = null;
+        let typingTimeout = null;
+        let contextMessageId = null;
 
         // --- DOM ELEMENTS ---
         const loginView = document.getElementById('login-view');
@@ -300,6 +313,8 @@
         const messagesContainer = document.getElementById('messages-container');
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
+        const imageInput = document.getElementById('image-input');
+        const contextMenu = document.getElementById('context-menu');
         
         // --- AUTH LOGIC ---
         async function handleAuthSuccess(user) {
@@ -434,63 +449,200 @@
             if (unsubscribeMessages) unsubscribeMessages();
             messagesContainer.innerHTML = '<div class="flex justify-center mt-10"><div class="loader" style="border-top-color:#6366f1; width:20px; height:20px; border:3px solid rgba(255,255,255,0.1); border-radius:50%; animation:spin 1s linear infinite;"></div></div>';
 
+            // Listen to Messages
             unsubscribeMessages = db.collection('messages')
                 .where('chatId', '==', contact.id)
                 .orderBy('timestamp', 'asc')
                 .onSnapshot(snapshot => {
                     messagesContainer.innerHTML = '';
+                    let lastDate = null;
+
                     if (snapshot.empty) messagesContainer.innerHTML = '<div class="text-center text-slate-500 text-xs mt-10">Inizia la conversazione!</div>';
-                    snapshot.forEach(doc => renderMessage(doc.data()));
+                    
+                    snapshot.forEach(doc => {
+                        const msg = doc.data();
+                        const msgDate = msg.timestamp ? msg.timestamp.toDate().toDateString() : new Date().toDateString();
+                        
+                        // Date Separator
+                        if (msgDate !== lastDate) {
+                            const dateDiv = document.createElement('div');
+                            dateDiv.className = "flex justify-center my-4";
+                            dateDiv.innerHTML = `<span class="text-[10px] font-bold text-slate-500 bg-slate-800/50 px-2 py-1 rounded-full">${msgDate === new Date().toDateString() ? 'Oggi' : msgDate}</span>`;
+                            messagesContainer.appendChild(dateDiv);
+                            lastDate = msgDate;
+                        }
+
+                        renderMessage(doc.id, msg);
+                        
+                        // Mark as Read if not mine
+                        if (msg.senderId !== currentUser.uid && !msg.read) {
+                            db.collection('messages').doc(doc.id).update({ read: true });
+                        }
+                    });
                     scrollToBottom();
-                }, err => {
-                    console.error("Listen error:", err);
-                    alert("Errore nel caricare i messaggi: " + err.message);
                 });
+            
+            // Listen for Typing Status
+            db.collection('chats').doc(contact.id).onSnapshot(doc => {
+                if(doc.exists && doc.data().typingBy === currentUser.uid) {
+                    // Don't show if I'm typing
+                } else if (doc.exists && doc.data().typingBy) {
+                    document.getElementById('typing-indicator').classList.remove('hidden');
+                    setTimeout(() => document.getElementById('typing-indicator').classList.add('hidden'), 3000);
+                }
+            });
         }
 
-        function renderMessage(msg) {
+        function renderMessage(id, msg) {
             const isMe = msg.senderId === currentUser.uid;
             const date = msg.timestamp ? msg.timestamp.toDate() : new Date();
             const time = `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+            
             const div = document.createElement('div');
-            div.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'} animate-slide-up`;
+            div.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'} animate-slide-up group relative`;
+            div.dataset.msgId = id;
+            
+            // Content
+            let contentHtml = '';
+            if (msg.imageUrl) {
+                contentHtml = `<img src="${msg.imageUrl}" class="msg-image" onclick="window.open(this.src)">`;
+            } else {
+                contentHtml = `<p class="break-words leading-relaxed">${msg.text}</p>`;
+            }
+
+            // Read Receipts
+            let statusIcon = '';
+            if (isMe) {
+                if (msg.read) {
+                    statusIcon = '<i class="ph-fill ph-checks text-[#53bdeb]"></i>'; // Blue double check
+                } else {
+                    statusIcon = '<i class="ph-fill ph-checks text-slate-400"></i>'; // Grey double check
+                }
+            }
+
             div.innerHTML = `
-                <div class="max-w-[80%] px-4 py-2 text-sm ${isMe ? 'msg-sent text-white' : 'msg-received text-slate-200'}">
-                    <p class="break-words leading-relaxed">${msg.text}</p>
-                    <div class="text-[10px] opacity-70 text-right mt-1 flex items-center justify-end gap-1">
-                        ${time} ${isMe ? '<i class="ph-fill ph-checks"></i>' : ''}
+                <div class="max-w-[80%] px-4 py-2 text-sm ${isMe ? 'msg-sent text-white' : 'msg-received text-slate-200'} relative">
+                    ${contentHtml}
+                    <div class="text-[10px] opacity-70 text-right mt-1 flex items-center justify-end gap-1 select-none">
+                        ${time} ${statusIcon}
                     </div>
                 </div>
             `;
+
+            // Context Menu Event
+            div.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showContextMenu(e.pageX, e.pageY, id, isMe);
+            });
+
             messagesContainer.appendChild(div);
         }
 
         function scrollToBottom() { messagesContainer.scrollTop = messagesContainer.scrollHeight; }
 
+        // --- TYPING INDICATOR LOGIC ---
+        messageInput.addEventListener('input', () => {
+            if(currentChatId) {
+                db.collection('chats').doc(currentChatId).set({
+                    typingBy: currentUser.uid,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    db.collection('chats').doc(currentChatId).update({ typingBy: firebase.firestore.FieldValue.delete() });
+                }, 2000);
+            }
+        });
+
+        // --- SENDING MESSAGES ---
         async function sendMessage() {
             const text = messageInput.value.trim();
-            if (!text || !currentChatId) return;
+            if ((!text && !window.tempImage) || !currentChatId) return;
+
+            const msgData = {
+                chatId: currentChatId,
+                senderId: currentUser.uid,
+                senderName: currentUser.displayName,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            };
+
+            if (window.tempImage) {
+                msgData.imageUrl = window.tempImage;
+                msgData.text = "Immagine";
+                window.tempImage = null; // Reset
+            } else {
+                msgData.text = text;
+            }
+
             messageInput.value = '';
             messageInput.style.height = 'auto';
+
             try {
-                await db.collection('messages').add({
-                    chatId: currentChatId,
-                    text: text,
-                    senderId: currentUser.uid,
-                    senderName: currentUser.displayName,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                await db.collection('messages').add(msgData);
             } catch (e) { alert("Errore invio: " + e.message); }
         }
+
+        // --- IMAGE HANDLING ---
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                window.tempImage = event.target.result; // Base64 string
+                sendMessage(); // Send immediately
+            };
+            reader.readAsDataURL(file);
+            e.target.value = ''; // Reset input
+        });
 
         sendBtn.addEventListener('click', sendMessage);
         messageInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
         messageInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; });
+        
         document.getElementById('back-btn').addEventListener('click', () => {
             document.getElementById('sidebar').classList.remove('-translate-x-full');
             currentChatId = null;
             document.getElementById('active-chat-interface').classList.add('hidden');
             document.getElementById('empty-state').classList.remove('hidden');
+        });
+
+        // --- CONTEXT MENU ---
+        function showContextMenu(x, y, msgId, isMe) {
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${x}px`;
+            contextMenu.style.top = `${y}px`;
+            contextMessageId = msgId;
+
+            // Show/Hide Delete based on ownership
+            const deleteBtn = document.getElementById('ctx-delete');
+            if (isMe) {
+                deleteBtn.style.display = 'flex';
+            } else {
+                deleteBtn.style.display = 'none';
+            }
+        }
+
+        // Hide context menu on click elsewhere
+        document.addEventListener('click', () => { contextMenu.style.display = 'none'; });
+
+        // Copy Action
+        document.getElementById('ctx-copy').addEventListener('click', async () => {
+            if (!contextMessageId) return;
+            const doc = await db.collection('messages').doc(contextMessageId).get();
+            if (doc.exists && doc.data().text) {
+                navigator.clipboard.writeText(doc.data().text);
+            }
+        });
+
+        // Delete Action
+        document.getElementById('ctx-delete').addEventListener('click', async () => {
+            if (!contextMessageId) return;
+            if (confirm("Eliminare questo messaggio?")) {
+                await db.collection('messages').doc(contextMessageId).delete();
+            }
         });
 
         // --- SETTINGS LOGIC ---
@@ -558,21 +710,3 @@
 </body>
 </html>
 
-
-
-              <script>
-                              rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Questa riga permette a CHIUNQUE di leggere e scrivere (come le tue regole vecchie)
-    match /{document=**} {
-      allow read, write: if true;
-    }
-  }
-}
-
-
-              </script>
-                        </body>
-                        </html>
-                    
