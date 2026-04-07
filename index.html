@@ -833,6 +833,7 @@
                 // Listen to Messages
                 if (this.msgUnsub) this.msgUnsub();
                 
+                // FIX: Handle Index Error by fetching and sorting locally if needed
                 this.msgUnsub = db.collection('messages')
                     .where('chatId', '==', chat.id)
                     .orderBy('timestamp', 'asc')
@@ -848,8 +849,27 @@
                             }
                         });
                     }, error => {
-                        console.error("Error loading messages:", error);
-                        UI.elements.messagesArea.innerHTML = '<div class="text-center text-red-400 mt-10">Errore nel caricamento messaggi. Controlla la console.</div>';
+                        console.warn("Index Error detected. Falling back to client-side sorting.", error);
+                        
+                        // Fallback: Get messages without order and sort in JS
+                        db.collection('messages')
+                            .where('chatId', '==', chat.id)
+                            .get()
+                            .then(snapshot => {
+                                const msgs = [];
+                                snapshot.forEach(doc => msgs.push({ id: doc.id, ...doc.data() }));
+                                // Sort locally by timestamp
+                                msgs.sort((a, b) => {
+                                    const timeA = a.timestamp ? a.timestamp.toMillis() : 0;
+                                    const timeB = b.timestamp ? b.timestamp.toMillis() : 0;
+                                    return timeA - timeB;
+                                });
+                                UI.renderMessages(msgs, chat.type);
+                            })
+                            .catch(err => {
+                                console.error("Fatal DB Error:", err);
+                                UI.elements.messagesArea.innerHTML = '<div class="text-center text-red-400 mt-10">Errore Critico DB. Controlla la Console (F12).</div>';
+                            });
                     });
 
                 // Update Chat List Highlight
