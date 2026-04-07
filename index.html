@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RL Chat - Advanced</title>
+    <title>Nexus Chat</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -58,17 +58,12 @@
         .msg-image:hover { transform: scale(1.02); }
 
         /* Context Menu */
-        #context-menu {
-            position: absolute;
-            z-index: 1000;
-            display: none;
-            backdrop-filter: blur(10px);
-        }
+        #context-menu { position: absolute; z-index: 1000; display: none; backdrop-filter: blur(10px); }
     </style>
 </head>
 <body class="bg-mesh text-slate-200">
 
-    <!-- CONTEXT MENU (Right Click) -->
+    <!-- CONTEXT MENU -->
     <div id="context-menu" class="bg-slate-800/90 border border-slate-700 rounded-lg shadow-xl py-1 w-40 animate-fade-in">
         <button id="ctx-copy" class="w-full text-left px-4 py-2 text-sm hover:bg-indigo-600/20 hover:text-indigo-400 flex items-center gap-2">
             <i class="ph ph-copy"></i> Copia
@@ -87,7 +82,7 @@
                 <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 mb-4">
                     <i class="ph-bold ph-chat-teardrop-text text-3xl"></i>
                 </div>
-                <h1 class="text-3xl font-bold brand-font text-white mb-2">RL Chat</h1>
+                <h1 class="text-3xl font-bold brand-font text-white mb-2">Nexus Chat</h1>
                 <p class="text-slate-400 text-sm">Accedi per connetterti.</p>
             </div>
 
@@ -143,7 +138,7 @@
                     <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
                         <i class="ph-bold ph-chat-teardrop-text text-lg"></i>
                     </div>
-                    <span class="text-lg font-bold brand-font tracking-wide text-white">RL Chat</span>
+                    <span class="text-lg font-bold brand-font tracking-wide text-white">Nexus</span>
                 </div>
                 <button id="settings-btn" class="w-9 h-9 rounded-full hover:bg-slate-700/50 flex items-center justify-center text-slate-400 transition-colors">
                     <i class="ph ph-gear text-xl"></i>
@@ -158,7 +153,7 @@
                     <i class="ph-duotone ph-planet text-5xl text-indigo-400"></i>
                 </div>
                 <h2 class="text-2xl font-bold text-white mb-2 brand-font">Nessuna chat selezionata</h2>
-                <p class="text-slate-400 max-w-sm">Apri le impostazioni per aggiungere un contatto.</p>
+                <p class="text-slate-400 max-w-sm">Apri le impostazioni per aggiungere contatti o creare un Team.</p>
             </div>
 
             <div id="active-chat-interface" class="flex flex-col h-full w-full hidden">
@@ -174,14 +169,12 @@
                 </header>
                 <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth bg-mesh/30"></div>
                 
-                <!-- Typing Indicator -->
                 <div id="typing-indicator" class="hidden px-6 py-1 text-xs text-slate-400 italic absolute bottom-20 left-0 animate-pulse">
                     Sta scrivendo...
                 </div>
 
                 <footer class="p-3 glass-header border-t border-slate-700/50">
                     <div class="max-w-5xl mx-auto flex items-end gap-2 bg-slate-800/50 p-1.5 rounded-2xl border border-slate-700/50 focus-within:border-indigo-500/50 transition-all">
-                        <!-- Image Upload Button -->
                         <input type="file" id="image-input" accept="image/*" class="hidden">
                         <button onclick="document.getElementById('image-input').click()" class="w-9 h-9 rounded-xl hover:bg-slate-700/50 flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-colors shrink-0 mb-0.5">
                             <i class="ph ph-image text-xl"></i>
@@ -205,18 +198,18 @@
                 </div>
                 
                 <div class="flex-1 overflow-y-auto p-0">
+                    <!-- Profile -->
                     <div class="p-6 flex flex-col items-center border-b border-slate-800 bg-gradient-to-b from-slate-800/30 to-transparent">
-                        <div class="relative group cursor-pointer">
-                            <img id="settings-avatar" src="" class="w-24 h-24 rounded-full ring-4 ring-slate-800 shadow-xl object-cover">
-                        </div>
+                        <img id="settings-avatar" src="" class="w-24 h-24 rounded-full ring-4 ring-slate-800 shadow-xl object-cover">
                         <h2 id="settings-name" class="mt-4 text-xl font-bold text-white">Nome Utente</h2>
                         <p id="settings-email" class="text-sm text-slate-400">email@example.com</p>
                         <button id="edit-profile-btn" class="mt-4 text-xs font-medium text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full hover:bg-indigo-500/10 transition-colors">Modifica Profilo</button>
                     </div>
 
+                    <!-- RL ID -->
                     <div class="p-5">
                         <div class="bg-gradient-to-r from-indigo-900/50 to-purple-900/50 p-4 rounded-2xl border border-indigo-500/30 relative overflow-hidden">
-                            <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-1 block">Il tuo RL ID</label>
+                            <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-1 block">Il tuo Nexus ID</label>
                             <div class="flex items-center justify-between relative z-10">
                                 <code id="my-rl-id" class="text-2xl font-mono text-white tracking-widest font-bold">...</code>
                                 <button onclick="copyToClipboard()" class="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-300"><i class="ph ph-copy text-xl"></i></button>
@@ -224,17 +217,35 @@
                         </div>
                     </div>
 
-                    <div class="px-5 pb-5">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Nuova Chat</label>
+                    <!-- Add Contact -->
+                    <div class="px-5 pb-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Aggiungi Contatto</label>
                         <div class="flex gap-2">
-                            <input type="text" id="add-contact-input" placeholder="Inserisci RL ID" maxlength="10" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500 focus:outline-none uppercase font-mono tracking-widest">
+                            <input type="text" id="add-contact-input" placeholder="Inserisci ID" maxlength="10" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500 focus:outline-none uppercase font-mono tracking-widest">
                             <button id="add-contact-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 rounded-xl transition-colors"><i class="ph-bold ph-user-plus text-xl"></i></button>
                         </div>
                         <div id="add-contact-msg" class="text-xs mt-2 hidden"></div>
                     </div>
 
-                    <div class="px-2 pb-20">
-                        <div class="text-xs font-bold text-slate-500 uppercase px-4 py-2">Aspetto & Privacy</div>
+                    <!-- Create Team -->
+                    <div class="px-5 py-2 border-t border-slate-800/50 mt-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Crea Team (Gruppo)</label>
+                        <input type="text" id="team-name-input" placeholder="Nome del Team" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500 focus:outline-none mb-2">
+                        
+                        <div class="text-xs text-slate-500 mb-2">Seleziona membri:</div>
+                        <div id="team-members-list" class="max-h-32 overflow-y-auto bg-slate-800/50 rounded-xl p-2 mb-2 space-y-1">
+                            <!-- Checkboxes injected here -->
+                            <div class="text-center text-slate-600 text-xs py-2">Nessun contatto disponibile</div>
+                        </div>
+
+                        <button id="create-team-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-xl transition-colors font-medium flex justify-center items-center gap-2">
+                            <i class="ph-bold ph-users-three"></i> Crea Team
+                        </button>
+                    </div>
+
+                    <!-- Settings List -->
+                    <div class="px-2 pb-20 mt-2">
+                        <div class="text-xs font-bold text-slate-500 uppercase px-4 py-2">Preferenze</div>
                         <div class="flex items-center justify-between px-4 py-3 hover:bg-slate-800/50 rounded-xl transition-colors cursor-pointer">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400"><i class="ph ph-moon text-lg"></i></div>
@@ -257,7 +268,7 @@
                 </div>
 
                 <div class="p-4 border-t border-slate-800 bg-slate-900 flex justify-between items-center">
-                    <span class="text-[10px] text-slate-600 font-mono">v1.3.0 • RL Chat</span>
+                    <span class="text-[10px] text-slate-600 font-mono">v2.0.0 • Nexus Chat</span>
                     <button id="logout-btn-settings" class="text-red-400 hover:text-red-300 text-sm font-medium flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors"><i class="ph ph-sign-out"></i> Esci</button>
                 </div>
             </div>
@@ -304,6 +315,7 @@
         let unsubscribeMessages = null;
         let typingTimeout = null;
         let contextMessageId = null;
+        let myContacts = []; // Array of contact objects
 
         // --- DOM ELEMENTS ---
         const loginView = document.getElementById('login-view');
@@ -348,7 +360,7 @@
                 appView.classList.remove('hidden');
                 void appView.offsetWidth; 
                 appView.style.opacity = '1';
-                loadContacts();
+                loadContactsAndTeams();
             }, 500);
         }
 
@@ -402,54 +414,210 @@
             }
         });
 
-        // --- CHAT LOGIC ---
-        async function loadContacts() {
+        // --- CONTACTS & TEAMS LOGIC ---
+        async function loadContactsAndTeams() {
             contactListEl.innerHTML = '';
+            
+            // 1. Load General Chat
             addContactToSidebar({
                 id: "general_chat",
                 name: "Chat Generale",
-                role: "Pubblica",
+                type: "public",
                 avatar: "https://ui-avatars.com/api/?name=General&background=6366f1&color=fff",
-                lastMsg: "Benvenuto su RL Chat!",
+                lastMsg: "Benvenuto su Nexus!",
                 time: ""
-            }, true);
+            });
 
-            const savedContacts = JSON.parse(localStorage.getItem(`rl_contacts_${currentUser.uid}`) || "[]");
-            savedContacts.forEach(c => addContactToSidebar(c, false));
+            // 2. Load Private Contacts & Teams from LocalStorage
+            const savedData = JSON.parse(localStorage.getItem(`nexus_data_${currentUser.uid}`) || "{}");
+            myContacts = savedData.contacts || [];
+            const myTeams = savedData.teams || [];
+
+            // Render Teams
+            myTeams.forEach(team => {
+                addContactToSidebar({
+                    ...team,
+                    type: 'team'
+                });
+            });
+
+            // Render Private Contacts
+            myContacts.forEach(contact => {
+                addContactToSidebar({
+                    ...contact,
+                    type: 'private'
+                });
+            });
+
+            // Populate Team Creation List
+            populateTeamMemberList();
         }
 
-        function addContactToSidebar(contact, isTop) {
+        function addContactToSidebar(item) {
             const div = document.createElement('div');
-            const isActive = contact.id === currentChatId;
+            const isActive = item.id === currentChatId;
+            
+            // Icon based on type
+            let iconHtml = '';
+            if (item.type === 'team') {
+                iconHtml = '<i class="ph-fill ph-users-three text-indigo-400 absolute bottom-0 right-0 bg-slate-900 rounded-full p-0.5 text-xs"></i>';
+            } else if (item.type === 'public') {
+                iconHtml = '<i class="ph-fill ph-globe text-indigo-400 absolute bottom-0 right-0 bg-slate-900 rounded-full p-0.5 text-xs"></i>';
+            }
+
             div.className = `group flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${isActive ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-slate-800/50 border border-transparent'}`;
-            div.onclick = () => openChat(contact);
+            div.onclick = () => openChat(item);
+            
             div.innerHTML = `
-                <img src="${contact.avatar}" class="w-10 h-10 rounded-full object-cover bg-slate-800">
+                <div class="relative">
+                    <img src="${item.avatar}" class="w-10 h-10 rounded-full object-cover bg-slate-800">
+                    ${iconHtml}
+                </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex justify-between items-baseline">
-                        <h4 class="text-sm font-semibold text-slate-200 truncate">${contact.name}</h4>
+                        <h4 class="text-sm font-semibold text-slate-200 truncate">${item.name}</h4>
                     </div>
-                    <p class="text-xs text-slate-400 truncate">${contact.lastMsg || 'Nuova chat'}</p>
+                    <p class="text-xs text-slate-400 truncate">${item.lastMsg || 'Nuova chat'}</p>
                 </div>
             `;
-            if (isTop) contactListEl.prepend(div);
-            else contactListEl.appendChild(div);
+            contactListEl.appendChild(div);
         }
 
+        function populateTeamMemberList() {
+            const list = document.getElementById('team-members-list');
+            list.innerHTML = '';
+            if (myContacts.length === 0) {
+                list.innerHTML = '<div class="text-center text-slate-600 text-xs py-2">Nessun contatto. Aggiungine uno prima!</div>';
+                return;
+            }
+            myContacts.forEach(c => {
+                const div = document.createElement('div');
+                div.className = "flex items-center gap-2 p-1";
+                div.innerHTML = `
+                    <input type="checkbox" value="${c.id}" class="team-member-check w-4 h-4 rounded bg-slate-700 border-slate-600 text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-xs text-slate-300">${c.name}</span>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // --- CREATE TEAM LOGIC ---
+        document.getElementById('create-team-btn').addEventListener('click', () => {
+            const teamName = document.getElementById('team-name-input').value.trim();
+            if (!teamName) {
+                alert("Inserisci un nome per il Team.");
+                return;
+            }
+
+            const checkboxes = document.querySelectorAll('.team-member-check:checked');
+            if (checkboxes.length === 0) {
+                alert("Seleziona almeno un membro.");
+                return;
+            }
+
+            const members = [currentUser.uid]; // Add self
+            checkboxes.forEach(cb => members.push(cb.value));
+
+            const newTeam = {
+                id: "team_" + Date.now(),
+                name: teamName,
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(teamName)}&background=10b981&color=fff&font-size=0.4`,
+                members: members,
+                lastMsg: "Team creato",
+                time: "Adesso"
+            };
+
+            // Save to LocalStorage
+            const savedData = JSON.parse(localStorage.getItem(`nexus_data_${currentUser.uid}`) || "{}");
+            if (!savedData.teams) savedData.teams = [];
+            savedData.teams.push(newTeam);
+            localStorage.setItem(`nexus_data_${currentUser.uid}`, JSON.stringify(savedData));
+
+            // Reset UI
+            document.getElementById('team-name-input').value = '';
+            loadContactsAndTeams();
+            alert("Team creato con successo!");
+        });
+
+        // --- ADD CONTACT LOGIC (Existing) ---
+        document.getElementById('add-contact-btn').addEventListener('click', async () => {
+            const input = document.getElementById('add-contact-input');
+            const targetId = input.value.trim().toUpperCase();
+            const msgDiv = document.getElementById('add-contact-msg');
+            
+            if (targetId.length !== 10) {
+                msgDiv.textContent = "L'ID deve essere di 10 caratteri.";
+                msgDiv.className = "text-red-400 text-xs mt-2 block";
+                return;
+            }
+
+            msgDiv.textContent = "Ricerca...";
+            msgDiv.className = "text-slate-400 text-xs mt-2 block";
+
+            try {
+                const snapshot = await db.collection('users').where('rlId', '==', targetId).get();
+                if (snapshot.empty) {
+                    msgDiv.textContent = "Utente non trovato.";
+                    msgDiv.className = "text-red-400 text-xs mt-2 block";
+                    return;
+                }
+                const userData = snapshot.docs[0].data();
+                if (userData.uid === currentUser.uid) {
+                    msgDiv.textContent = "Non puoi aggiungere te stesso.";
+                    msgDiv.className = "text-red-400 text-xs mt-2 block";
+                    return;
+                }
+                
+                // Generate Private Chat ID
+                const uids = [currentUser.uid, userData.uid].sort();
+                const chatId = uids.join('_');
+                
+                const newContact = { 
+                    id: chatId, 
+                    name: userData.displayName, 
+                    avatar: userData.photoURL, 
+                    lastMsg: "Contatto aggiunto", 
+                    time: "Adesso" 
+                };
+                
+                const savedData = JSON.parse(localStorage.getItem(`nexus_data_${currentUser.uid}`) || "{}");
+                if (!savedData.contacts) savedData.contacts = [];
+                
+                if (!savedData.contacts.some(c => c.id === chatId)) {
+                    savedData.contacts.push(newContact);
+                    localStorage.setItem(`nexus_data_${currentUser.uid}`, JSON.stringify(savedData));
+                    loadContactsAndTeams();
+                    input.value = '';
+                    msgDiv.textContent = "Aggiunto!";
+                    msgDiv.className = "text-green-400 text-xs mt-2 block";
+                    populateTeamMemberList(); // Update team list too
+                } else {
+                    msgDiv.textContent = "Già presente.";
+                    msgDiv.className = "text-yellow-400 text-xs mt-2 block";
+                }
+            } catch (err) {
+                msgDiv.textContent = "Errore: " + err.message;
+                msgDiv.className = "text-red-400 text-xs mt-2 block";
+            }
+        });
+
+        // --- CHAT LOGIC ---
         function openChat(contact) {
             currentChatId = contact.id;
             if (window.innerWidth < 640) document.getElementById('sidebar').classList.add('-translate-x-full');
             document.getElementById('empty-state').classList.add('hidden');
             document.getElementById('active-chat-interface').classList.remove('hidden');
             document.getElementById('chat-name').textContent = contact.name;
-            document.getElementById('chat-subtitle').textContent = contact.role || 'Privato';
+            document.getElementById('chat-subtitle').textContent = contact.type === 'team' ? 'Team' : (contact.type === 'public' ? 'Pubblica' : 'Privato');
             document.getElementById('chat-avatar').src = contact.avatar;
-            loadContacts();
+            
+            // Refresh sidebar highlights
+            const savedData = JSON.parse(localStorage.getItem(`nexus_data_${currentUser.uid}`) || "{}");
+            loadContactsAndTeams(); 
 
             if (unsubscribeMessages) unsubscribeMessages();
             messagesContainer.innerHTML = '<div class="flex justify-center mt-10"><div class="loader" style="border-top-color:#6366f1; width:20px; height:20px; border:3px solid rgba(255,255,255,0.1); border-radius:50%; animation:spin 1s linear infinite;"></div></div>';
 
-            // Listen to Messages
             unsubscribeMessages = db.collection('messages')
                 .where('chatId', '==', contact.id)
                 .orderBy('timestamp', 'asc')
@@ -463,7 +631,6 @@
                         const msg = doc.data();
                         const msgDate = msg.timestamp ? msg.timestamp.toDate().toDateString() : new Date().toDateString();
                         
-                        // Date Separator
                         if (msgDate !== lastDate) {
                             const dateDiv = document.createElement('div');
                             dateDiv.className = "flex justify-center my-4";
@@ -474,23 +641,13 @@
 
                         renderMessage(doc.id, msg);
                         
-                        // Mark as Read if not mine
+                        // Mark as Read
                         if (msg.senderId !== currentUser.uid && !msg.read) {
                             db.collection('messages').doc(doc.id).update({ read: true });
                         }
                     });
                     scrollToBottom();
                 });
-            
-            // Listen for Typing Status
-            db.collection('chats').doc(contact.id).onSnapshot(doc => {
-                if(doc.exists && doc.data().typingBy === currentUser.uid) {
-                    // Don't show if I'm typing
-                } else if (doc.exists && doc.data().typingBy) {
-                    document.getElementById('typing-indicator').classList.remove('hidden');
-                    setTimeout(() => document.getElementById('typing-indicator').classList.add('hidden'), 3000);
-                }
-            });
         }
 
         function renderMessage(id, msg) {
@@ -502,7 +659,11 @@
             div.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'} animate-slide-up group relative`;
             div.dataset.msgId = id;
             
-            // Content
+            let senderNameHtml = '';
+            if (!isMe && currentChatId.startsWith('team_')) {
+                senderNameHtml = `<span class="text-xs text-indigo-400 font-bold mb-1 block">${msg.senderName || 'Utente'}</span>`;
+            }
+
             let contentHtml = '';
             if (msg.imageUrl) {
                 contentHtml = `<img src="${msg.imageUrl}" class="msg-image" onclick="window.open(this.src)">`;
@@ -510,18 +671,14 @@
                 contentHtml = `<p class="break-words leading-relaxed">${msg.text}</p>`;
             }
 
-            // Read Receipts
             let statusIcon = '';
             if (isMe) {
-                if (msg.read) {
-                    statusIcon = '<i class="ph-fill ph-checks text-[#53bdeb]"></i>'; // Blue double check
-                } else {
-                    statusIcon = '<i class="ph-fill ph-checks text-slate-400"></i>'; // Grey double check
-                }
+                statusIcon = msg.read ? '<i class="ph-fill ph-checks text-[#53bdeb]"></i>' : '<i class="ph-fill ph-checks text-slate-400"></i>';
             }
 
             div.innerHTML = `
                 <div class="max-w-[80%] px-4 py-2 text-sm ${isMe ? 'msg-sent text-white' : 'msg-received text-slate-200'} relative">
+                    ${senderNameHtml}
                     ${contentHtml}
                     <div class="text-[10px] opacity-70 text-right mt-1 flex items-center justify-end gap-1 select-none">
                         ${time} ${statusIcon}
@@ -529,7 +686,6 @@
                 </div>
             `;
 
-            // Context Menu Event
             div.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 showContextMenu(e.pageX, e.pageY, id, isMe);
@@ -540,7 +696,7 @@
 
         function scrollToBottom() { messagesContainer.scrollTop = messagesContainer.scrollHeight; }
 
-        // --- TYPING INDICATOR LOGIC ---
+        // --- TYPING INDICATOR ---
         messageInput.addEventListener('input', () => {
             if(currentChatId) {
                 db.collection('chats').doc(currentChatId).set({
@@ -571,7 +727,7 @@
             if (window.tempImage) {
                 msgData.imageUrl = window.tempImage;
                 msgData.text = "Immagine";
-                window.tempImage = null; // Reset
+                window.tempImage = null;
             } else {
                 msgData.text = text;
             }
@@ -588,14 +744,13 @@
         imageInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(event) {
-                window.tempImage = event.target.result; // Base64 string
-                sendMessage(); // Send immediately
+                window.tempImage = event.target.result;
+                sendMessage();
             };
             reader.readAsDataURL(file);
-            e.target.value = ''; // Reset input
+            e.target.value = '';
         });
 
         sendBtn.addEventListener('click', sendMessage);
@@ -615,89 +770,27 @@
             contextMenu.style.left = `${x}px`;
             contextMenu.style.top = `${y}px`;
             contextMessageId = msgId;
-
-            // Show/Hide Delete based on ownership
-            const deleteBtn = document.getElementById('ctx-delete');
-            if (isMe) {
-                deleteBtn.style.display = 'flex';
-            } else {
-                deleteBtn.style.display = 'none';
-            }
+            document.getElementById('ctx-delete').style.display = isMe ? 'flex' : 'none';
         }
-
-        // Hide context menu on click elsewhere
         document.addEventListener('click', () => { contextMenu.style.display = 'none'; });
 
-        // Copy Action
         document.getElementById('ctx-copy').addEventListener('click', async () => {
             if (!contextMessageId) return;
             const doc = await db.collection('messages').doc(contextMessageId).get();
-            if (doc.exists && doc.data().text) {
-                navigator.clipboard.writeText(doc.data().text);
-            }
+            if (doc.exists && doc.data().text) navigator.clipboard.writeText(doc.data().text);
         });
 
-        // Delete Action
         document.getElementById('ctx-delete').addEventListener('click', async () => {
             if (!contextMessageId) return;
-            if (confirm("Eliminare questo messaggio?")) {
-                await db.collection('messages').doc(contextMessageId).delete();
-            }
+            if (confirm("Eliminare questo messaggio?")) await db.collection('messages').doc(contextMessageId).delete();
         });
 
-        // --- SETTINGS LOGIC ---
-        document.getElementById('settings-btn').addEventListener('click', () => settingsModal.classList.remove('hidden'));
+        // --- SETTINGS UI ---
+        document.getElementById('settings-btn').addEventListener('click', () => {
+            settingsModal.classList.remove('hidden');
+            loadContactsAndTeams(); // Refresh lists
+        });
         document.getElementById('close-settings').addEventListener('click', () => settingsModal.classList.add('hidden'));
-
-        document.getElementById('add-contact-btn').addEventListener('click', async () => {
-            const input = document.getElementById('add-contact-input');
-            const targetId = input.value.trim().toUpperCase();
-            const msgDiv = document.getElementById('add-contact-msg');
-            
-            if (targetId.length !== 10) {
-                msgDiv.textContent = "L'ID deve essere di 10 caratteri.";
-                msgDiv.className = "text-red-400 text-xs mt-2 block";
-                return;
-            }
-
-            msgDiv.textContent = "Ricerca...";
-            msgDiv.className = "text-slate-400 text-xs mt-2 block";
-
-            try {
-                const snapshot = await db.collection('users').where('rlId', '==', targetId).get();
-                if (snapshot.empty) {
-                    msgDiv.textContent = "Utente non trovato.";
-                    msgDiv.className = "text-red-400 text-xs mt-2 block";
-                    return;
-                }
-                const userData = snapshot.docs[0].data();
-                if (userData.uid === currentUser.uid) {
-                    msgDiv.textContent = "Non puoi aggiungere te stesso.";
-                    msgDiv.className = "text-red-400 text-xs mt-2 block";
-                    return;
-                }
-                const uids = [currentUser.uid, userData.uid].sort();
-                const chatId = uids.join('_');
-                const newContact = { id: chatId, name: userData.displayName, role: "Privato", avatar: userData.photoURL, lastMsg: "Contatto aggiunto", time: "Adesso" };
-                
-                const saved = JSON.parse(localStorage.getItem(`rl_contacts_${currentUser.uid}`) || "[]");
-                if (!saved.some(c => c.id === chatId)) {
-                    saved.push(newContact);
-                    localStorage.setItem(`rl_contacts_${currentUser.uid}`, JSON.stringify(saved));
-                    addContactToSidebar(newContact, false);
-                    input.value = '';
-                    msgDiv.textContent = "Aggiunto!";
-                    msgDiv.className = "text-green-400 text-xs mt-2 block";
-                    setTimeout(() => { settingsModal.classList.add('hidden'); openChat(newContact); }, 1000);
-                } else {
-                    msgDiv.textContent = "Già presente.";
-                    msgDiv.className = "text-yellow-400 text-xs mt-2 block";
-                }
-            } catch (err) {
-                msgDiv.textContent = "Errore: " + err.message;
-                msgDiv.className = "text-red-400 text-xs mt-2 block";
-            }
-        });
 
         document.getElementById('edit-profile-btn').addEventListener('click', () => {
             const newName = prompt("Nuovo nome:", currentUser.displayName);
