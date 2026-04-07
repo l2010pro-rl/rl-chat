@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexus Chat</title>
+    <title>Nexus Chat Ultimate</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -53,15 +53,30 @@
         .toggle-checkbox:checked { right: 0; border-color: #6366f1; }
         .toggle-checkbox:checked + .toggle-label { background-color: #6366f1; }
 
-        /* Image Preview */
+        /* Image Preview & Context Menu */
         .msg-image { max-width: 250px; border-radius: 12px; margin-top: 5px; cursor: pointer; transition: transform 0.2s; }
         .msg-image:hover { transform: scale(1.02); }
-
-        /* Context Menu */
         #context-menu { position: absolute; z-index: 1000; display: none; backdrop-filter: blur(10px); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Emoji Picker Grid */
+        .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; max-height: 200px; overflow-y: auto; }
+        .emoji-btn { font-size: 1.2rem; padding: 5px; cursor: pointer; border-radius: 5px; text-align: center; }
+        .emoji-btn:hover { background: rgba(255,255,255,0.1); }
     </style>
 </head>
 <body class="bg-mesh text-slate-200">
+
+    <!-- IMAGE VIEWER MODAL -->
+    <div id="image-viewer" class="fixed inset-0 z-[200] bg-black/90 hidden flex items-center justify-center p-4" onclick="this.classList.add('hidden')">
+        <img id="viewer-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl">
+        <button class="absolute top-5 right-5 text-white text-3xl"><i class="ph ph-x"></i></button>
+    </div>
 
     <!-- CONTEXT MENU -->
     <div id="context-menu" class="bg-slate-800/90 border border-slate-700 rounded-lg shadow-xl py-1 w-40 animate-fade-in">
@@ -160,11 +175,17 @@
                 <header class="h-[70px] px-5 flex justify-between items-center shrink-0 glass-header z-10">
                     <div class="flex items-center gap-3">
                         <button id="back-btn" class="sm:hidden text-slate-400 hover:text-white mr-1"><i class="ph-bold ph-arrow-left text-xl"></i></button>
-                        <img id="chat-avatar" src="" class="w-9 h-9 rounded-full object-cover ring-2 ring-slate-700">
-                        <div>
+                        <div class="cursor-pointer" onclick="openChatInfo()">
+                            <img id="chat-avatar" src="" class="w-9 h-9 rounded-full object-cover ring-2 ring-slate-700">
+                        </div>
+                        <div class="cursor-pointer" onclick="openChatInfo()">
                             <h3 id="chat-name" class="text-white font-semibold text-base leading-none">Name</h3>
                             <span id="chat-subtitle" class="text-indigo-400 text-xs">Online</span>
                         </div>
+                    </div>
+                    <div class="flex gap-2">
+                         <button class="w-8 h-8 rounded-full hover:bg-slate-700/50 flex items-center justify-center text-slate-400"><i class="ph ph-phone"></i></button>
+                         <button class="w-8 h-8 rounded-full hover:bg-slate-700/50 flex items-center justify-center text-slate-400"><i class="ph ph-video-camera"></i></button>
                     </div>
                 </header>
                 <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth bg-mesh/30"></div>
@@ -173,11 +194,19 @@
                     Sta scrivendo...
                 </div>
 
-                <footer class="p-3 glass-header border-t border-slate-700/50">
+                <footer class="p-3 glass-header border-t border-slate-700/50 relative">
+                    <!-- Emoji Picker -->
+                    <div id="emoji-picker" class="hidden absolute bottom-20 left-4 bg-slate-800 border border-slate-700 rounded-xl p-2 shadow-2xl w-64 z-50">
+                        <div class="emoji-grid" id="emoji-grid"></div>
+                    </div>
+
                     <div class="max-w-5xl mx-auto flex items-end gap-2 bg-slate-800/50 p-1.5 rounded-2xl border border-slate-700/50 focus-within:border-indigo-500/50 transition-all">
                         <input type="file" id="image-input" accept="image/*" class="hidden">
-                        <button onclick="document.getElementById('image-input').click()" class="w-9 h-9 rounded-xl hover:bg-slate-700/50 flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-colors shrink-0 mb-0.5">
+                        <button onclick="document.getElementById('image-input').click()" class="w-9 h-9 rounded-xl hover:bg-slate-700/50 flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-colors shrink-0 mb-0.5" title="Invia Immagine">
                             <i class="ph ph-image text-xl"></i>
+                        </button>
+                        <button onclick="toggleEmojiPicker()" class="w-9 h-9 rounded-xl hover:bg-slate-700/50 flex items-center justify-center text-slate-400 hover:text-yellow-400 transition-colors shrink-0 mb-0.5" title="Emoji">
+                            <i class="ph ph-smiley text-xl"></i>
                         </button>
                         
                         <textarea id="message-input" rows="1" placeholder="Scrivi un messaggio..." class="w-full bg-transparent text-slate-200 placeholder-slate-500 text-sm py-2.5 px-3 focus:outline-none resize-none max-h-32 scrollbar-hide"></textarea>
@@ -198,12 +227,18 @@
                 </div>
                 
                 <div class="flex-1 overflow-y-auto p-0">
-                    <!-- Profile -->
+                    <!-- Profile with Upload -->
                     <div class="p-6 flex flex-col items-center border-b border-slate-800 bg-gradient-to-b from-slate-800/30 to-transparent">
-                        <img id="settings-avatar" src="" class="w-24 h-24 rounded-full ring-4 ring-slate-800 shadow-xl object-cover">
+                        <div class="relative group cursor-pointer" onclick="document.getElementById('profile-upload').click()">
+                            <img id="settings-avatar" src="" class="w-24 h-24 rounded-full ring-4 ring-slate-800 shadow-xl object-cover">
+                            <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="ph ph-camera text-white text-2xl"></i>
+                            </div>
+                            <input type="file" id="profile-upload" accept="image/*" class="hidden">
+                        </div>
                         <h2 id="settings-name" class="mt-4 text-xl font-bold text-white">Nome Utente</h2>
                         <p id="settings-email" class="text-sm text-slate-400">email@example.com</p>
-                        <button id="edit-profile-btn" class="mt-4 text-xs font-medium text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full hover:bg-indigo-500/10 transition-colors">Modifica Profilo</button>
+                        <button id="edit-profile-btn" class="mt-4 text-xs font-medium text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full hover:bg-indigo-500/10 transition-colors">Modifica Nome</button>
                     </div>
 
                     <!-- RL ID -->
@@ -234,7 +269,6 @@
                         
                         <div class="text-xs text-slate-500 mb-2">Seleziona membri:</div>
                         <div id="team-members-list" class="max-h-32 overflow-y-auto bg-slate-800/50 rounded-xl p-2 mb-2 space-y-1">
-                            <!-- Checkboxes injected here -->
                             <div class="text-center text-slate-600 text-xs py-2">Nessun contatto disponibile</div>
                         </div>
 
@@ -268,7 +302,7 @@
                 </div>
 
                 <div class="p-4 border-t border-slate-800 bg-slate-900 flex justify-between items-center">
-                    <span class="text-[10px] text-slate-600 font-mono">v2.0.0 • Nexus Chat</span>
+                    <span class="text-[10px] text-slate-600 font-mono">v2.1.0 • Nexus Chat</span>
                     <button id="logout-btn-settings" class="text-red-400 hover:text-red-300 text-sm font-medium flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors"><i class="ph ph-sign-out"></i> Esci</button>
                 </div>
             </div>
@@ -315,7 +349,7 @@
         let unsubscribeMessages = null;
         let typingTimeout = null;
         let contextMessageId = null;
-        let myContacts = []; // Array of contact objects
+        let myContacts = []; 
 
         // --- DOM ELEMENTS ---
         const loginView = document.getElementById('login-view');
@@ -326,7 +360,10 @@
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
         const imageInput = document.getElementById('image-input');
+        const profileUpload = document.getElementById('profile-upload');
         const contextMenu = document.getElementById('context-menu');
+        const imageViewr = document.getElementById('image-viewer');
+        const viewerImg = document.getElementById('viewer-img');
         
         // --- AUTH LOGIC ---
         async function handleAuthSuccess(user) {
@@ -343,16 +380,17 @@
                     displayName: user.displayName || user.email.split('@')[0],
                     photoURL: user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=6366f1&color=fff`,
                     rlId: rlId,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'online'
                 });
             } else {
                 rlId = doc.data().rlId;
+                // Update status to online
+                userRef.update({ status: 'online' });
             }
 
-            document.getElementById('settings-name').textContent = user.displayName || "Utente";
-            document.getElementById('settings-email').textContent = user.email;
-            document.getElementById('settings-avatar').src = user.photoURL || `https://ui-avatars.com/api/?name=${user.email}`;
-            document.getElementById('my-rl-id').textContent = rlId;
+            // Set UI Data
+            updateUserUI(user);
 
             loginView.style.opacity = '0';
             setTimeout(() => {
@@ -364,6 +402,35 @@
             }, 500);
         }
 
+        function updateUserUI(user) {
+            document.getElementById('settings-name').textContent = user.displayName || "Utente";
+            document.getElementById('settings-email').textContent = user.email;
+            document.getElementById('settings-avatar').src = user.photoURL || `https://ui-avatars.com/api/?name=${user.email}`;
+            
+            // Get RL ID again if needed
+            db.collection('users').doc(user.uid).get().then(doc => {
+                if(doc.exists) document.getElementById('my-rl-id').textContent = doc.data().rlId;
+            });
+        }
+
+        // Profile Image Upload
+        profileUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64 = event.target.result;
+                // Update Firebase
+                currentUser.updateProfile({ photoURL: base64 }).then(() => {
+                    db.collection('users').doc(currentUser.uid).update({ photoURL: base64 });
+                    updateUserUI(currentUser);
+                    alert("Foto profilo aggiornata!");
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Login Form
         document.getElementById('email-login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
@@ -392,7 +459,11 @@
             auth.signInWithPopup(provider).then((result) => handleAuthSuccess(result.user)).catch(err => console.error(err));
         });
 
-        document.getElementById('logout-btn-settings').addEventListener('click', () => { auth.signOut(); window.location.reload(); });
+        document.getElementById('logout-btn-settings').addEventListener('click', () => { 
+            if(currentUser) db.collection('users').doc(currentUser.uid).update({ status: 'offline' });
+            auth.signOut(); 
+            window.location.reload(); 
+        });
 
         document.getElementById('toggle-register').addEventListener('click', (e) => {
             e.preventDefault();
@@ -435,18 +506,12 @@
 
             // Render Teams
             myTeams.forEach(team => {
-                addContactToSidebar({
-                    ...team,
-                    type: 'team'
-                });
+                addContactToSidebar({ ...team, type: 'team' });
             });
 
             // Render Private Contacts
             myContacts.forEach(contact => {
-                addContactToSidebar({
-                    ...contact,
-                    type: 'private'
-                });
+                addContactToSidebar({ ...contact, type: 'private' });
             });
 
             // Populate Team Creation List
@@ -457,7 +522,6 @@
             const div = document.createElement('div');
             const isActive = item.id === currentChatId;
             
-            // Icon based on type
             let iconHtml = '';
             if (item.type === 'team') {
                 iconHtml = '<i class="ph-fill ph-users-three text-indigo-400 absolute bottom-0 right-0 bg-slate-900 rounded-full p-0.5 text-xs"></i>';
@@ -504,18 +568,12 @@
         // --- CREATE TEAM LOGIC ---
         document.getElementById('create-team-btn').addEventListener('click', () => {
             const teamName = document.getElementById('team-name-input').value.trim();
-            if (!teamName) {
-                alert("Inserisci un nome per il Team.");
-                return;
-            }
+            if (!teamName) { alert("Inserisci un nome per il Team."); return; }
 
             const checkboxes = document.querySelectorAll('.team-member-check:checked');
-            if (checkboxes.length === 0) {
-                alert("Seleziona almeno un membro.");
-                return;
-            }
+            if (checkboxes.length === 0) { alert("Seleziona almeno un membro."); return; }
 
-            const members = [currentUser.uid]; // Add self
+            const members = [currentUser.uid]; 
             checkboxes.forEach(cb => members.push(cb.value));
 
             const newTeam = {
@@ -527,19 +585,17 @@
                 time: "Adesso"
             };
 
-            // Save to LocalStorage
             const savedData = JSON.parse(localStorage.getItem(`nexus_data_${currentUser.uid}`) || "{}");
             if (!savedData.teams) savedData.teams = [];
             savedData.teams.push(newTeam);
             localStorage.setItem(`nexus_data_${currentUser.uid}`, JSON.stringify(savedData));
 
-            // Reset UI
             document.getElementById('team-name-input').value = '';
             loadContactsAndTeams();
             alert("Team creato con successo!");
         });
 
-        // --- ADD CONTACT LOGIC (Existing) ---
+        // --- ADD CONTACT LOGIC ---
         document.getElementById('add-contact-btn').addEventListener('click', async () => {
             const input = document.getElementById('add-contact-input');
             const targetId = input.value.trim().toUpperCase();
@@ -568,7 +624,6 @@
                     return;
                 }
                 
-                // Generate Private Chat ID
                 const uids = [currentUser.uid, userData.uid].sort();
                 const chatId = uids.join('_');
                 
@@ -590,7 +645,7 @@
                     input.value = '';
                     msgDiv.textContent = "Aggiunto!";
                     msgDiv.className = "text-green-400 text-xs mt-2 block";
-                    populateTeamMemberList(); // Update team list too
+                    populateTeamMemberList();
                 } else {
                     msgDiv.textContent = "Già presente.";
                     msgDiv.className = "text-yellow-400 text-xs mt-2 block";
@@ -611,8 +666,9 @@
             document.getElementById('chat-subtitle').textContent = contact.type === 'team' ? 'Team' : (contact.type === 'public' ? 'Pubblica' : 'Privato');
             document.getElementById('chat-avatar').src = contact.avatar;
             
-            // Refresh sidebar highlights
-            const savedData = JSON.parse(localStorage.getItem(`nexus_data_${currentUser.uid}`) || "{}");
+            // Store current chat info for "Info" panel
+            window.currentChatInfo = contact;
+
             loadContactsAndTeams(); 
 
             if (unsubscribeMessages) unsubscribeMessages();
@@ -641,13 +697,20 @@
 
                         renderMessage(doc.id, msg);
                         
-                        // Mark as Read
                         if (msg.senderId !== currentUser.uid && !msg.read) {
                             db.collection('messages').doc(doc.id).update({ read: true });
                         }
                     });
                     scrollToBottom();
                 });
+        }
+
+        function openChatInfo() {
+            if(!window.currentChatInfo) return;
+            const info = window.currentChatInfo;
+            let details = `Nome: ${info.name}\nTipo: ${info.type}\nID: ${info.id}`;
+            if(info.members) details += `\nMembri: ${info.members.length}`;
+            alert(details);
         }
 
         function renderMessage(id, msg) {
@@ -660,13 +723,13 @@
             div.dataset.msgId = id;
             
             let senderNameHtml = '';
-            if (!isMe && currentChatId.startsWith('team_')) {
+            if (!isMe && currentChatId && currentChatId.startsWith('team_')) {
                 senderNameHtml = `<span class="text-xs text-indigo-400 font-bold mb-1 block">${msg.senderName || 'Utente'}</span>`;
             }
 
             let contentHtml = '';
             if (msg.imageUrl) {
-                contentHtml = `<img src="${msg.imageUrl}" class="msg-image" onclick="window.open(this.src)">`;
+                contentHtml = `<img src="${msg.imageUrl}" class="msg-image" onclick="viewImage('${msg.imageUrl}')">`;
             } else {
                 contentHtml = `<p class="break-words leading-relaxed">${msg.text}</p>`;
             }
@@ -692,6 +755,11 @@
             });
 
             messagesContainer.appendChild(div);
+        }
+
+        function viewImage(src) {
+            viewerImg.src = src;
+            imageViewr.classList.remove('hidden');
         }
 
         function scrollToBottom() { messagesContainer.scrollTop = messagesContainer.scrollHeight; }
@@ -764,6 +832,24 @@
             document.getElementById('empty-state').classList.remove('hidden');
         });
 
+        // --- EMOJI PICKER ---
+        const emojis = ["😀","😂","😍","🤔","👍","👎","🎉","🔥","❤️","💔","👀","🚀","✅","❌","⭐","💡","🎵","📷","🍕","🍺"];
+        const emojiGrid = document.getElementById('emoji-grid');
+        emojis.forEach(emoji => {
+            const btn = document.createElement('div');
+            btn.className = 'emoji-btn';
+            btn.textContent = emoji;
+            btn.onclick = () => {
+                messageInput.value += emoji;
+                messageInput.focus();
+            };
+            emojiGrid.appendChild(btn);
+        });
+
+        function toggleEmojiPicker() {
+            document.getElementById('emoji-picker').classList.toggle('hidden');
+        }
+
         // --- CONTEXT MENU ---
         function showContextMenu(x, y, msgId, isMe) {
             contextMenu.style.display = 'block';
@@ -772,7 +858,7 @@
             contextMessageId = msgId;
             document.getElementById('ctx-delete').style.display = isMe ? 'flex' : 'none';
         }
-        document.addEventListener('click', () => { contextMenu.style.display = 'none'; });
+        document.addEventListener('click', () => { contextMenu.style.display = 'none'; document.getElementById('emoji-picker').classList.add('hidden'); });
 
         document.getElementById('ctx-copy').addEventListener('click', async () => {
             if (!contextMessageId) return;
@@ -788,7 +874,7 @@
         // --- SETTINGS UI ---
         document.getElementById('settings-btn').addEventListener('click', () => {
             settingsModal.classList.remove('hidden');
-            loadContactsAndTeams(); // Refresh lists
+            loadContactsAndTeams();
         });
         document.getElementById('close-settings').addEventListener('click', () => settingsModal.classList.add('hidden'));
 
@@ -796,6 +882,7 @@
             const newName = prompt("Nuovo nome:", currentUser.displayName);
             if(newName) {
                 currentUser.updateProfile({ displayName: newName });
+                db.collection('users').doc(currentUser.uid).update({ displayName: newName });
                 document.getElementById('settings-name').textContent = newName;
             }
         });
