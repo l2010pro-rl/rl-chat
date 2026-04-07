@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Chat</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Google Fonts (Outfit & Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, .brand-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+        }
+
+        /* Message Bubbles */
+        .msg-sent {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            box-shadow: 0 4px 15px -3px rgba(79, 70, 229, 0.4);
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        .msg-received {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 18px 18px 18px 4px;
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        .status-dot::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: #10b981;
+            border-radius: 50%;
+            z-index: -1;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        /* Background Mesh Gradient */
+        .bg-mesh {
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex items-center justify-center bg-mesh selection:bg-indigo-500 selection:text-white">
+
+    <!-- Main App Container -->
+    <div class="w-full h-full max-w-[1600px] flex overflow-hidden relative sm:h-[90vh] sm:w-[95vw] sm:rounded-3xl shadow-2xl glass border border-slate-700/50">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-full sm:w-[380px] flex flex-col border-r border-slate-700/50 bg-slate-900/80 z-20 transition-transform duration-300 absolute sm:relative h-full backdrop-blur-xl">
+            
+            <!-- Header -->
+            <header class="h-[80px] px-6 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                        <i class="ph-bold ph-chat-teardrop-text text-xl"></i>
+                    </div>
+                    <span class="text-xl font-bold brand-font tracking-wide text-white">Nexus</span>
+                </div>
+                <button class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-colors">
+                    <i class="ph ph-gear text-xl"></i>
+                </button>
+            </header>
+
+            <!-- Search -->
+            <div class="px-6 pb-4">
+                <div class="relative group">
+                    <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
+                    <input type="text" placeholder="Cerca conversazioni..." class="w-full bg-slate-800/50 border border-slate-700 text-slate-200 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-indigo-500/50 focus:bg-slate-800 transition-all placeholder-slate-500">
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="px-6 flex gap-3 mb-4 overflow-x-auto no-scrollbar">
+                <button class="px-4 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-medium shadow-lg shadow-indigo-500/20 whitespace-nowrap">Tutti</button>
+                <button class="px-4 py-1.5 rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white text-xs font-medium transition-colors whitespace-nowrap">Non letti</button>
+                <button class="px-4 py-1.5 rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white text-xs font-medium transition-colors whitespace-nowrap">Gruppi</button>
+            </div>
+
+            <!-- List -->
+            <div id="contact-list" class="flex-1 overflow-y-auto px-3 space-y-1">
+                <!-- JS Injected -->
+            </div>
+        </aside>
+
+        <!-- Chat Area -->
+        <main class="flex-1 flex flex-col relative w-full bg-slate-900/40">
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden sm:flex flex-col items-center justify-center h-full text-center p-10">
+                <div class="w-32 h-32 bg-slate-800/50 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                    <i class="ph-duotone ph-planet text-6xl text-indigo-400"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-2 brand-font">Benvenuto su Nexus</h2>
+                <p class="text-slate-400 max-w-md">Seleziona una chat per iniziare a comunicare con il tuo team in tempo reale.</p>
+            </div>
+
+            <!-- Active Chat -->
+            <div id="active-chat-interface" class="flex flex-col h-full w-full hidden">
+                
+                <!-- Chat Header -->
+                <header class="h-[80px] px-6 flex justify-between items-center shrink-0 border-b border-slate-700/50 glass">
+                    <div class="flex items-center gap-4">
+                        <button id="back-btn" class="sm:hidden text-slate-400 hover:text-white">
+                            <i class="ph-bold ph-arrow-left text-xl"></i>
+                        </button>
+                        <div class="relative">
+                            <img id="chat-avatar" src="" class="w-11 h-11 rounded-full object-cover ring-2 ring-slate-700">
+                            <div id="chat-status-dot" class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-900 hidden"></div>
+                        </div>
+                        <div>
+                            <h3 id="chat-name" class="text-white font-semibold text-lg leading-none mb-1">Name</h3>
+                            <span id="chat-subtitle" class="text-indigo-400 text-xs font-medium">Online</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-all hover:text-indigo-400"><i class="ph ph-phone text-xl"></i></button>
+                        <button class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-all hover:text-indigo-400"><i class="ph ph-video-camera text-xl"></i></button>
+                        <button class="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-all hover:text-indigo-400"><i class="ph ph-dots-three-vertical text-xl"></i></button>
+                    </div>
+                </header>
+
+                <!-- Messages -->
+                <div id="messages-container" class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
+                    <!-- Date Separator Example -->
+                    <div class="flex justify-center my-4">
+                        <span class="text-xs font-medium text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full">Oggi</span>
+                    </div>
+                    <!-- Messages injected here -->
+                </div>
+
+                <!-- Input Area -->
+                <footer class="p-4 glass border-t border-slate-700/50">
+                    <div class="max-w-4xl mx-auto flex items-end gap-3 bg-slate-800/50 p-2 rounded-3xl border border-slate-700/50 focus-within:border-indigo-500/50 focus-within:bg-slate-800 transition-all shadow-lg">
+                        <button class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-400 hover:bg-slate-700/50 transition-colors shrink-0">
+                            <i class="ph ph-plus text-xl"></i>
+                        </button>
+                        
+                        <textarea id="message-input" rows="1" placeholder="Scrivi un messaggio..." class="w-full bg-transparent text-slate-200 placeholder-slate-500 text-sm py-3 px-2 focus:outline-none resize-none max-h-32 scrollbar-hide"></textarea>
+
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button id="emoji-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-yellow-400 hover:bg-slate-700/50 transition-colors">
+                                <i class="ph ph-smiley text-xl"></i>
+                            </button>
+                            <button id="send-btn" class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-500 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="ph-bold ph-paper-plane-right text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Data ---
+        const contacts = [
+            {
+                id: 1,
+                name: "Elisa Martin",
+                role: "Product Designer",
+                avatar: "https://image.qwenlm.ai/public_source/d2d9ffc3-2da1-457d-aaff-4d913aad2da0/1e1258756-9d2c-4a9e-98f7-46fc5a72268f.png",
+                status: "online",
+                lastMessage: "Il mockup è pronto, dai un'occhiata! 🎨",
+                time: "10:42",
+                unread: 2,
+                messages: [
+                    { id: 1, text: "Ciao Elisa, come procede con la UI?", sender: "me", time: "10:30" },
+                    { id: 2, text: "Ciao! Sto giusto rifinendo i dettagli della dark mode.", sender: "them", time: "10:35" },
+                    { id: 3, text: "Perfetto, non vedo l'ora di vederlo.", sender: "me", time: "10:36" },
+                    { id: 4, text: "Il mockup è pronto, dai un'occhiata! 🎨", sender: "them", time: "10:42" }
+                ]
+            },
+            {
+                id: 2,
+                name: "Dev Team Alpha",
+                role: "Gruppo • 8 Membri",
+                avatar: "https://ui-avatars.com/api/?name=Dev+Team&background=6366f1&color=fff&font-size=0.4",
+                status: "group",
+                lastMessage: "Marco: Deploy effettuato con successo 🚀",
+                time: "09:15",
+                unread: 0,
+                messages: [
+                    { id: 1, text: "Ragazzi, occhio al merge conflict su main.", sender: "them", time: "09:00", name: "Sara" },
+                    { id: 2, text: "Ci sto guardando ora.", sender: "me", time: "09:05" },
+                    { id: 3, text: "Deploy effettuato con successo 🚀", sender: "them", time: "09:15", name: "Marco" }
+                ]
+            },
+            {
+                id: 3,
+                name: "Luca Rossi",
+                role: "Marketing Lead",
+                avatar: "https://image.qwenlm.ai/public_source/d2d9ffc3-2da1-457d-aaff-4d913aad2da0/1df80f0f5-5ef8-4e7b-a196-07f2ab7d54eb.png",
+                status: "offline",
+                lastMessage: "Ok, sentiamoci domani mattina.",
+                time: "Ieri",
+                unread: 0,
+                messages: [
+                    { id: 1, text: "Hai visto le analytics della campagna?", sender: "them", time: "Ieri 16:00" },
+                    { id: 2, text: "Sì, i numeri sono ottimi!", sender: "me", time: "Ieri 16:30" },
+                    { id: 3, text: "Ok, sentiamoci domani mattina.", sender: "them", time: "Ieri 17:00" }
+                ]
+            },
+            {
+                id: 4,
+                name: "Sarah Connor",
+                role: "Security",
+                avatar: "https://image.qwenlm.ai/public_source/d2d9ffc3-2da1-457d-aaff-4d913aad2da0/1f7c3a8d1-c5df-4aec-b396-40b368aae079.png",
+                status: "online",
+                lastMessage: "Abbiamo un problema col firewall.",
+                time: "Ieri",
+                unread: 1,
+                messages: [
+                    { id: 1, text: "Tutto sicuro?", sender: "me", time: "Ieri 12:00" },
+                    { id: 2, text: "Abbiamo un problema col firewall.", sender: "them", time: "Ieri 12:05" }
+                ]
+            }
+        ];
+
+        let activeContactId = null;
+
+        // --- DOM Elements ---
+        const contactListEl = document.getElementById('contact-list');
+        const messagesContainer = document.getElementById('messages-container');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const sidebar = document.getElementById('sidebar');
+        const emptyState = document.getElementById('empty-state');
+        const activeChatInterface = document.getElementById('active-chat-interface');
+        const backBtn = document.getElementById('back-btn');
+        
+        const chatAvatar = document.getElementById('chat-avatar');
+        const chatName = document.getElementById('chat-name');
+        const chatSubtitle = document.getElementById('chat-subtitle');
+        const chatStatusDot = document.getElementById('chat-status-dot');
+
+        // --- Functions ---
+
+        function renderContacts() {
+            contactListEl.innerHTML = '';
+            contacts.forEach(contact => {
+                const isActive = contact.id === activeContactId;
+                const div = document.createElement('div');
+                div.className = `group flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition-all duration-200 ${isActive ? 'bg-indigo-600/10 border border-indigo-500/20' : 'hover:bg-slate-800/50 border border-transparent'}`;
+                div.onclick = () => loadChat(contact.id);
+
+                div.innerHTML = `
+                    <div class="relative">
+                        <img src="${contact.avatar}" alt="${contact.name}" class="w-12 h-12 rounded-full object-cover">
+                        ${contact.status === 'online' ? `<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-900"></div>` : ''}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <h4 class="text-sm font-semibold truncate ${isActive ? 'text-indigo-300' : 'text-slate-200'}">${contact.name}</h4>
+                            <span class="text-xs ${isActive ? 'text-indigo-400' : 'text-slate-500'}">${contact.time}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs text-slate-400 truncate pr-2 group-hover:text-slate-300 transition-colors">${contact.lastMessage}</p>
+                            ${contact.unread > 0 ? `<span class="bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg shadow-indigo-500/30">${contact.unread}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                contactListEl.appendChild(div);
+            });
+        }
+
+        function loadChat(id) {
+            activeContactId = id;
+            const contact = contacts.find(c => c.id === id);
+            
+            renderContacts();
+            
+            // Mobile Logic
+            if (window.innerWidth < 640) {
+                sidebar.classList.add('-translate-x-full');
+                setTimeout(() => sidebar.classList.add('hidden'), 300);
+                activeChatInterface.classList.remove('hidden');
+            }
+
+            emptyState.classList.add('hidden');
+            activeChatInterface.classList.remove('hidden');
+            activeChatInterface.classList.add('flex');
+
+            // Header Update
+            chatAvatar.src = contact.avatar;
+            chatName.textContent = contact.name;
+            chatSubtitle.textContent = contact.role;
+            
+            if(contact.status === 'online') {
+                chatStatusDot.classList.remove('hidden');
+                chatSubtitle.textContent = "Online";
+                chatSubtitle.className = "text-emerald-400 text-xs font-medium";
+            } else {
+                chatStatusDot.classList.add('hidden');
+                chatSubtitle.className = "text-slate-500 text-xs font-medium";
+            }
+
+            renderMessages(contact.messages);
+        }
+
+        function renderMessages(messages) {
+            messagesContainer.innerHTML = '<div class="flex justify-center my-4"><span class="text-xs font-medium text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full">Oggi</span></div>';
+            messages.forEach(msg => {
+                appendMessageToDOM(msg);
+            });
+            scrollToBottom();
+        }
+
+        function appendMessageToDOM(msg) {
+            const isMe = msg.sender === 'me';
+            const div = document.createElement('div');
+            div.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'} animate-slide-up`;
+            
+            let nameHtml = '';
+            if (!isMe && msg.name) {
+                nameHtml = `<span class="text-indigo-400 text-xs font-bold mb-1 ml-1 block">${msg.name}</span>`;
+            }
+
+            div.innerHTML = `
+                <div class="relative max-w-[75%] px-5 py-3 text-[15px] leading-relaxed ${isMe ? 'msg-sent text-white' : 'msg-received text-slate-200'} flex flex-col mb-1">
+                    ${nameHtml}
+                    <span class="break-words whitespace-pre-wrap">${msg.text}</span>
+                    <div class="self-end flex items-center gap-1 mt-1 opacity-70">
+                        <span class="text-[10px] font-medium">${msg.time}</span>
+                        ${isMe ? '<i class="ph-fill ph-checks text-xs"></i>' : ''}
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(div);
+        }
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text || !activeContactId) return;
+
+            const contact = contacts.find(c => c.id === activeContactId);
+            const now = new Date();
+            const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            const newMessage = {
+                id: Date.now(),
+                text: text,
+                sender: 'me',
+                time: timeString
+            };
+
+            contact.messages.push(newMessage);
+            contact.lastMessage = text;
+            contact.time = timeString;
+
+            appendMessageToDOM(newMessage);
+            scrollToBottom();
+            
+            // Reset Input
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            renderContacts();
+        }
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            if(this.value === '') this.style.height = 'auto';
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        backBtn.addEventListener('click', () => {
+            sidebar.classList.remove('hidden');
+            // Small delay to allow display:block to apply before transform
+            setTimeout(() => {
+                sidebar.classList.remove('-translate-x-full');
+            }, 10);
+            activeContactId = null;
+            renderContacts();
+        });
+
+        // Init
+        renderContacts();
+        if (window.innerWidth >= 640) {
+            emptyState.classList.remove('hidden');
+            emptyState.classList.add('flex');
+        }
+
+    </script>
+</body>
+</html>
+
