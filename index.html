@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RL Chat - Impostazioni</title>
+    <title>RL Chat</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,7 +14,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs (Versione Compat per HTML semplice) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -362,6 +362,7 @@
 
     <script>
         // --- FIREBASE CONFIGURATION ---
+        // Ho inserito QUI le tue chiavi reali. Non serve fare import.
         const firebaseConfig = {
             apiKey: "AIzaSyAVJa4vv1BmK_GOB0RwJxDHoAySNlhjIc8",
             authDomain: "rl-chats.firebaseapp.com",
@@ -371,6 +372,7 @@
             appId: "1:339897083919:web:8831b7ca535559ae6c9b7a"
         };
 
+        // Inizializzazione Firebase (Metodo Compat per HTML)
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
