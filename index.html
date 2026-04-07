@@ -14,7 +14,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDKs (Versione Compat per HTML semplice) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -24,8 +24,9 @@
             font-family: 'Inter', sans-serif;
             background-color: #0f172a;
             color: #e2e8f0;
-            overflow: hidden;
+            overflow: hidden; /* Prevent body scroll */
             margin: 0;
+            padding: 0;
             height: 100vh;
             width: 100vw;
         }
@@ -34,23 +35,26 @@
             font-family: 'Outfit', sans-serif;
         }
 
-        /* Glassmorphism & Utilities */
+        /* Glassmorphism */
         .glass {
             background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(10px);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         .glass-header {
             background: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* Bubbles */
+        /* Message Bubbles */
         .msg-sent {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            box-shadow: 0 4px 15px -3px rgba(79, 70, 229, 0.3);
             border-radius: 18px 18px 4px 18px;
         }
+
         .msg-received {
             background: #1e293b;
             border: 1px solid rgba(255,255,255,0.05);
@@ -58,18 +62,15 @@
         }
 
         /* Animations */
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-        
-        /* Background */
+        /* Background Mesh */
         .bg-mesh {
             background-color: #0f172a;
             background-image: 
@@ -78,14 +79,22 @@
                 radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
         }
 
-        /* Toggle Switch */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #6366f1;
+        /* Loader */
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top: 3px solid #6366f1;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
         }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #6366f1;
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body class="bg-mesh text-slate-200">
@@ -100,7 +109,7 @@
                     <i class="ph-bold ph-chat-teardrop-text text-3xl"></i>
                 </div>
                 <h1 class="text-3xl font-bold brand-font text-white mb-2">RL Chat</h1>
-                <p class="text-slate-400 text-sm">Accedi per connetterti.</p>
+                <p class="text-slate-400 text-sm">Accedi per iniziare.</p>
             </div>
 
             <form id="email-login-form" class="space-y-4">
@@ -108,14 +117,14 @@
                     <label class="block text-xs font-medium text-slate-400 mb-1 ml-1">Email</label>
                     <div class="relative">
                         <i class="ph ph-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                        <input type="email" id="email" required class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-indigo-500 transition-all placeholder-slate-600" placeholder="nome@esempio.com">
+                        <input type="email" id="email" required class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder-slate-600" placeholder="nome@esempio.com">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1 ml-1">Password</label>
                     <div class="relative">
                         <i class="ph ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                        <input type="password" id="password" required class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-indigo-500 transition-all placeholder-slate-600" placeholder="••••••••">
+                        <input type="password" id="password" required class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder-slate-600" placeholder="••••••••">
                     </div>
                 </div>
                 
@@ -218,140 +227,52 @@
             </div>
         </main>
 
-        <!-- SETTINGS MODAL (FULL FEATURED) -->
-        <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md hidden flex justify-end sm:justify-center sm:items-center">
-            <div class="w-full sm:max-w-md h-full sm:h-[85vh] sm:rounded-3xl bg-slate-900 border-l sm:border border-slate-700 shadow-2xl flex flex-col animate-slide-up">
+        <!-- SETTINGS MODAL -->
+        <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-slide-up">
+                <div class="p-5 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-white brand-font">Impostazioni</h3>
+                    <button id="close-settings" class="text-slate-400 hover:text-white"><i class="ph ph-x text-xl"></i></button>
+                </div>
                 
-                <!-- Settings Header -->
-                <div class="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-800/50">
-                    <h3 class="text-xl font-bold text-white brand-font">Impostazioni</h3>
-                    <button id="close-settings" class="w-8 h-8 rounded-full bg-slate-700/50 hover:bg-slate-700 flex items-center justify-center text-slate-300 transition-colors">
-                        <i class="ph ph-x text-lg"></i>
-                    </button>
-                </div>
-
-                <!-- Settings Content -->
-                <div class="flex-1 overflow-y-auto p-0">
-                    
-                    <!-- Profile Section -->
-                    <div class="p-6 flex flex-col items-center border-b border-slate-800 bg-gradient-to-b from-slate-800/30 to-transparent">
-                        <div class="relative group cursor-pointer">
-                            <img id="settings-avatar" src="" class="w-24 h-24 rounded-full ring-4 ring-slate-800 shadow-xl object-cover">
-                            <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i class="ph ph-camera text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h2 id="settings-name" class="mt-4 text-xl font-bold text-white">Nome Utente</h2>
-                        <p id="settings-email" class="text-sm text-slate-400">email@example.com</p>
-                        
-                        <button id="edit-profile-btn" class="mt-4 text-xs font-medium text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full hover:bg-indigo-500/10 transition-colors">
-                            Modifica Profilo
-                        </button>
-                    </div>
-
-                    <!-- My RL ID Card -->
-                    <div class="p-5">
-                        <div class="bg-gradient-to-r from-indigo-900/50 to-purple-900/50 p-4 rounded-2xl border border-indigo-500/30 relative overflow-hidden">
-                            <div class="absolute -right-6 -top-6 w-24 h-24 bg-indigo-500/20 rounded-full blur-2xl"></div>
-                            <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-1 block">Il tuo RL ID</label>
-                            <div class="flex items-center justify-between relative z-10">
-                                <code id="my-rl-id" class="text-2xl font-mono text-white tracking-widest font-bold">...</code>
-                                <button onclick="copyToClipboard()" class="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-300" title="Copia ID">
-                                    <i class="ph ph-copy text-xl"></i>
-                                </button>
-                            </div>
-                            <p class="text-[10px] text-indigo-200/60 mt-2">Condividi questo codice per chattare.</p>
+                <div class="p-6 space-y-6">
+                    <!-- User Info -->
+                    <div class="flex items-center gap-4">
+                        <img id="settings-avatar" src="" class="w-14 h-14 rounded-full ring-2 ring-indigo-500/50">
+                        <div>
+                            <div id="settings-name" class="text-white font-bold text-lg">Nome Utente</div>
+                            <div id="settings-email" class="text-slate-400 text-xs">email@example.com</div>
                         </div>
                     </div>
 
-                    <!-- Add Contact Section -->
-                    <div class="px-5 pb-5">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Nuova Chat</label>
+                    <!-- My RL ID -->
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                        <label class="text-xs text-indigo-400 font-bold uppercase tracking-wider mb-1 block">Il tuo RL ID</label>
+                        <div class="flex items-center justify-between">
+                            <code id="my-rl-id" class="text-xl font-mono text-white tracking-widest">LOADING...</code>
+                            <button onclick="copyToClipboard()" class="text-slate-400 hover:text-white" title="Copia">
+                                <i class="ph ph-copy text-lg"></i>
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-2">Condividi questo codice con gli amici per chattare.</p>
+                    </div>
+
+                    <!-- Add Contact -->
+                    <div>
+                        <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 block">Aggiungi Contatto</label>
                         <div class="flex gap-2">
-                            <input type="text" id="add-contact-input" placeholder="Inserisci RL ID" maxlength="10" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500 focus:outline-none uppercase font-mono tracking-widest placeholder:normal-case placeholder:tracking-normal placeholder:font-sans">
-                            <button id="add-contact-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 rounded-xl transition-colors">
-                                <i class="ph-bold ph-user-plus text-xl"></i>
+                            <input type="text" id="add-contact-input" placeholder="Inserisci RL ID (10 cifre)" maxlength="10" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none uppercase font-mono">
+                            <button id="add-contact-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                Aggiungi
                             </button>
                         </div>
-                        <div id="add-contact-msg" class="text-xs mt-2 hidden"></div>
-                    </div>
-
-                    <!-- General Settings List -->
-                    <div class="px-2 pb-20">
-                        <div class="text-xs font-bold text-slate-500 uppercase px-4 py-2">Aspetto & Privacy</div>
-                        
-                        <!-- Toggle Dark Mode -->
-                        <div class="flex items-center justify-between px-4 py-3 hover:bg-slate-800/50 rounded-xl transition-colors cursor-pointer">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400">
-                                    <i class="ph ph-moon text-lg"></i>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-medium text-slate-200">Modalità Notte</div>
-                                    <div class="text-[10px] text-slate-500">Tema scuro automatico</div>
-                                </div>
-                            </div>
-                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                                <input type="checkbox" name="toggle" id="toggle-darkmode" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300" checked/>
-                                <label for="toggle-darkmode" class="toggle-label block overflow-hidden h-5 rounded-full bg-indigo-600 cursor-pointer"></label>
-                            </div>
-                        </div>
-
-                        <!-- Toggle Notifications -->
-                        <div class="flex items-center justify-between px-4 py-3 hover:bg-slate-800/50 rounded-xl transition-colors cursor-pointer">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400">
-                                    <i class="ph ph-bell text-lg"></i>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-medium text-slate-200">Notifiche</div>
-                                    <div class="text-[10px] text-slate-500">Suoni e avvisi popup</div>
-                                </div>
-                            </div>
-                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                                <input type="checkbox" name="toggle" id="toggle-notif" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300" checked/>
-                                <label for="toggle-notif" class="toggle-label block overflow-hidden h-5 rounded-full bg-indigo-600 cursor-pointer"></label>
-                            </div>
-                        </div>
-
-                        <!-- Privacy: Block Strangers -->
-                        <div class="flex items-center justify-between px-4 py-3 hover:bg-slate-800/50 rounded-xl transition-colors cursor-pointer">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400">
-                                    <i class="ph ph-shield-check text-lg"></i>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-medium text-slate-200">Solo Amici</div>
-                                    <div class="text-[10px] text-slate-500">Blocca messaggi da sconosciuti</div>
-                                </div>
-                            </div>
-                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                                <input type="checkbox" name="toggle" id="toggle-privacy" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300"/>
-                                <label for="toggle-privacy" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-700 cursor-pointer"></label>
-                            </div>
-                        </div>
-
-                        <div class="h-px bg-slate-800 my-2 mx-4"></div>
-
-                        <!-- Data Actions -->
-                        <div class="px-4 py-2">
-                            <button onclick="clearCache()" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-red-500/10 group transition-colors">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-slate-800 group-hover:bg-red-500/20 flex items-center justify-center text-slate-400 group-hover:text-red-400 transition-colors">
-                                        <i class="ph ph-trash text-lg"></i>
-                                    </div>
-                                    <span class="text-sm font-medium text-slate-300 group-hover:text-red-400">Pulisci Cache Locale</span>
-                                </div>
-                                <i class="ph ph-caret-right text-slate-600"></i>
-                            </button>
-                        </div>
+                        <div id="add-contact-error" class="text-red-400 text-xs mt-2 hidden"></div>
                     </div>
                 </div>
 
-                <!-- Footer -->
-                <div class="p-4 border-t border-slate-800 bg-slate-900 flex justify-between items-center">
-                    <span class="text-[10px] text-slate-600 font-mono">v1.1.0 • RL Chat</span>
-                    <button id="logout-btn-settings" class="text-red-400 hover:text-red-300 text-sm font-medium flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors">
+                <div class="p-4 bg-slate-900/30 border-t border-slate-700/50 flex justify-between items-center">
+                    <span class="text-xs text-slate-500">Versione 1.0.2</span>
+                    <button id="logout-btn-settings" class="text-red-400 hover:text-red-300 text-sm font-medium flex items-center gap-1">
                         <i class="ph ph-sign-out"></i> Esci
                     </button>
                 </div>
@@ -362,7 +283,6 @@
 
     <script>
         // --- FIREBASE CONFIGURATION ---
-        // Ho inserito QUI le tue chiavi reali. Non serve fare import.
         const firebaseConfig = {
             apiKey: "AIzaSyAVJa4vv1BmK_GOB0RwJxDHoAySNlhjIc8",
             authDomain: "rl-chats.firebaseapp.com",
@@ -372,7 +292,7 @@
             appId: "1:339897083919:web:8831b7ca535559ae6c9b7a"
         };
 
-        // Inizializzazione Firebase (Metodo Compat per HTML)
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -380,7 +300,7 @@
 
         // --- UTILS ---
         function generateRLID() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No I, O, 0, 1 to avoid confusion
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let result = '';
             for (let i = 0; i < 10; i++) {
                 result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -390,26 +310,16 @@
 
         function copyToClipboard() {
             const code = document.getElementById('my-rl-id').innerText;
-            if(code === "...") return;
             navigator.clipboard.writeText(code).then(() => {
-                const msg = document.getElementById('add-contact-msg');
-                msg.textContent = "ID Copiato negli appunti!";
-                msg.className = "text-green-400 text-xs mt-2 block animate-fade-in";
-                setTimeout(() => msg.classList.add('hidden'), 2000);
+                alert("RL ID copiato!");
             });
-        }
-
-        function clearCache() {
-            if(confirm("Sei sicuro? Questo rimuoverà i contatti salvati localmente.")) {
-                localStorage.clear();
-                window.location.reload();
-            }
         }
 
         // --- STATE ---
         let currentUser = null;
         let currentChatId = null;
         let unsubscribeMessages = null;
+        let contacts = []; // Will hold dynamic contacts
 
         // --- DOM ELEMENTS ---
         const loginView = document.getElementById('login-view');
@@ -426,7 +336,7 @@
             const btn = document.getElementById('login-btn');
             if (isLoading) {
                 btn.disabled = true;
-                btn.innerHTML = '<div class="loader" style="border-top-color:white; width:16px; height:16px;"></div>';
+                btn.innerHTML = '<div class="loader"></div>';
             } else {
                 btn.disabled = false;
                 btn.innerHTML = '<span>Accedi</span>';
@@ -447,7 +357,7 @@
                     uid: user.uid,
                     email: user.email,
                     displayName: user.displayName || user.email.split('@')[0],
-                    photoURL: user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=6366f1&color=fff`,
+                    photoURL: user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=random`,
                     rlId: rlId,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
@@ -473,7 +383,7 @@
                 void appView.offsetWidth; 
                 appView.style.opacity = '1';
                 
-                loadContacts();
+                loadContacts(); // Load chats
             }, 500);
         }
 
@@ -510,10 +420,14 @@
         });
 
         // Logout
-        const doLogout = () => { auth.signOut(); window.location.reload(); };
+        const doLogout = () => {
+            auth.signOut();
+            window.location.reload();
+        };
+        document.getElementById('logout-btn').addEventListener('click', doLogout);
         document.getElementById('logout-btn-settings').addEventListener('click', doLogout);
 
-        // Toggle Register/Login Text
+        // Toggle Register/Login
         document.getElementById('toggle-register').addEventListener('click', (e) => {
             e.preventDefault();
             const el = e.target;
@@ -539,7 +453,7 @@
         async function loadContacts() {
             contactListEl.innerHTML = '';
             
-            // 1. General Chat
+            // 1. Add General Chat (Static)
             addContactToSidebar({
                 id: "general_chat",
                 name: "Chat Generale",
@@ -549,9 +463,17 @@
                 time: ""
             }, true);
 
-            // 2. Private Chats from LocalStorage
+            // 2. Load Private Chats from Firestore (User's contacts)
+            // In a real app, you'd have a 'contacts' subcollection. 
+            // For simplicity, we will scan messages to find unique chatIds the user participated in.
+            // But to keep it clean, let's just rely on the "Add Contact" feature saving to local state for now
+            // or we can fetch from a 'chats' collection if we implemented that fully.
+            
+            // For this demo, we will check localStorage for saved contacts to persist them simply
             const savedContacts = JSON.parse(localStorage.getItem(`rl_contacts_${currentUser.uid}`) || "[]");
-            savedContacts.forEach(c => addContactToSidebar(c, false));
+            savedContacts.forEach(c => {
+                addContactToSidebar(c, false);
+            });
         }
 
         function addContactToSidebar(contact, isTop) {
@@ -561,7 +483,7 @@
             div.onclick = () => openChat(contact);
 
             div.innerHTML = `
-                <img src="${contact.avatar}" class="w-10 h-10 rounded-full object-cover bg-slate-800">
+                <img src="${contact.avatar}" class="w-10 h-10 rounded-full object-cover">
                 <div class="flex-1 min-w-0">
                     <div class="flex justify-between items-baseline">
                         <h4 class="text-sm font-semibold text-slate-200 truncate">${contact.name}</h4>
@@ -578,6 +500,7 @@
         function openChat(contact) {
             currentChatId = contact.id;
             
+            // Mobile View Logic
             if (window.innerWidth < 640) {
                 document.getElementById('sidebar').classList.add('-translate-x-full');
             }
@@ -585,12 +508,15 @@
             document.getElementById('empty-state').classList.add('hidden');
             document.getElementById('active-chat-interface').classList.remove('hidden');
             
+            // Update Header
             document.getElementById('chat-name').textContent = contact.name;
             document.getElementById('chat-subtitle').textContent = contact.role || 'Privato';
             document.getElementById('chat-avatar').src = contact.avatar;
 
-            loadContacts(); // Refresh highlights
+            // Refresh Sidebar Highlights
+            loadContacts(); // Re-render to show active state
 
+            // Listen to Messages
             if (unsubscribeMessages) unsubscribeMessages();
 
             messagesContainer.innerHTML = '<div class="flex justify-center mt-10"><div class="loader"></div></div>';
@@ -601,9 +527,11 @@
                 .onSnapshot(snapshot => {
                     messagesContainer.innerHTML = '';
                     if (snapshot.empty) {
-                        messagesContainer.innerHTML = '<div class="text-center text-slate-500 text-xs mt-10">Inizia la conversazione!</div>';
+                        messagesContainer.innerHTML = '<div class="text-center text-slate-500 text-xs mt-10">Nessun messaggio ancora.</div>';
                     }
-                    snapshot.forEach(doc => renderMessage(doc.data()));
+                    snapshot.forEach(doc => {
+                        renderMessage(doc.data());
+                    });
                     scrollToBottom();
                 });
         }
@@ -618,7 +546,7 @@
             
             div.innerHTML = `
                 <div class="max-w-[80%] px-4 py-2 text-sm ${isMe ? 'msg-sent text-white' : 'msg-received text-slate-200'}">
-                    <p class="break-words leading-relaxed">${msg.text}</p>
+                    <p class="break-words">${msg.text}</p>
                     <div class="text-[10px] opacity-70 text-right mt-1 flex items-center justify-end gap-1">
                         ${time}
                         ${isMe ? '<i class="ph-fill ph-checks"></i>' : ''}
@@ -648,19 +576,24 @@
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
             } catch (e) {
-                alert("Errore invio. Controlla connessione.");
+                console.error("Error sending:", e);
+                alert("Errore invio. Controlla regole Firestore.");
             }
         }
 
         sendBtn.addEventListener('click', sendMessage);
         messageInput.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
         });
         messageInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
         });
 
+        // Back Button Mobile
         document.getElementById('back-btn').addEventListener('click', () => {
             document.getElementById('sidebar').classList.remove('-translate-x-full');
             currentChatId = null;
@@ -669,40 +602,43 @@
         });
 
         // --- SETTINGS LOGIC ---
-        document.getElementById('settings-btn').addEventListener('click', () => settingsModal.classList.remove('hidden'));
-        document.getElementById('close-settings').addEventListener('click', () => settingsModal.classList.add('hidden'));
+        document.getElementById('settings-btn').addEventListener('click', () => {
+            settingsModal.classList.remove('hidden');
+        });
+        document.getElementById('close-settings').addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+        });
 
         // Add Contact Logic
         document.getElementById('add-contact-btn').addEventListener('click', async () => {
             const input = document.getElementById('add-contact-input');
             const targetId = input.value.trim().toUpperCase();
-            const msgDiv = document.getElementById('add-contact-msg');
+            const errorDiv = document.getElementById('add-contact-error');
             
             if (targetId.length !== 10) {
-                msgDiv.textContent = "L'ID deve essere di 10 caratteri.";
-                msgDiv.className = "text-red-400 text-xs mt-2 block animate-fade-in";
+                errorDiv.textContent = "L'ID deve essere di 10 caratteri.";
+                errorDiv.classList.remove('hidden');
                 return;
             }
 
-            msgDiv.textContent = "Ricerca in corso...";
-            msgDiv.className = "text-slate-400 text-xs mt-2 block";
-
+            // Search User in Firestore
             try {
                 const snapshot = await db.collection('users').where('rlId', '==', targetId).get();
                 
                 if (snapshot.empty) {
-                    msgDiv.textContent = "Utente non trovato.";
-                    msgDiv.className = "text-red-400 text-xs mt-2 block animate-fade-in";
+                    errorDiv.textContent = "Utente non trovato con questo ID.";
+                    errorDiv.classList.remove('hidden');
                     return;
                 }
 
                 const userData = snapshot.docs[0].data();
                 if (userData.uid === currentUser.uid) {
-                    msgDiv.textContent = "Non puoi aggiungere te stesso.";
-                    msgDiv.className = "text-red-400 text-xs mt-2 block animate-fade-in";
+                    errorDiv.textContent = "Non puoi aggiungere te stesso.";
+                    errorDiv.classList.remove('hidden');
                     return;
                 }
 
+                // Create Chat ID (Combination of UIDs sorted)
                 const uids = [currentUser.uid, userData.uid].sort();
                 const chatId = uids.join('_');
 
@@ -711,41 +647,33 @@
                     name: userData.displayName,
                     role: "Privato",
                     avatar: userData.photoURL,
-                    lastMsg: "Contatto aggiunto",
+                    lastMsg: "Appena aggiunto",
                     time: "Adesso"
                 };
 
+                // Save to LocalStorage for sidebar persistence (Simple way)
                 const saved = JSON.parse(localStorage.getItem(`rl_contacts_${currentUser.uid}`) || "[]");
+                // Avoid duplicates
                 if (!saved.some(c => c.id === chatId)) {
                     saved.push(newContact);
                     localStorage.setItem(`rl_contacts_${currentUser.uid}`, JSON.stringify(saved));
+                    
+                    // Refresh UI
                     addContactToSidebar(newContact, false);
                     input.value = '';
-                    msgDiv.textContent = "Contatto aggiunto con successo!";
-                    msgDiv.className = "text-green-400 text-xs mt-2 block animate-fade-in";
-                    setTimeout(() => {
-                        settingsModal.classList.add('hidden');
-                        openChat(newContact);
-                    }, 1000);
+                    settingsModal.classList.add('hidden');
+                    
+                    // Auto open chat
+                    openChat(newContact);
                 } else {
-                    msgDiv.textContent = "Contatto già presente.";
-                    msgDiv.className = "text-yellow-400 text-xs mt-2 block animate-fade-in";
+                    errorDiv.textContent = "Contatto già esistente.";
+                    errorDiv.classList.remove('hidden');
                 }
 
             } catch (err) {
                 console.error(err);
-                msgDiv.textContent = "Errore di connessione.";
-                msgDiv.className = "text-red-400 text-xs mt-2 block animate-fade-in";
-            }
-        });
-
-        // Edit Profile Mock
-        document.getElementById('edit-profile-btn').addEventListener('click', () => {
-            const newName = prompt("Inserisci nuovo nome:", currentUser.displayName);
-            if(newName) {
-                currentUser.updateProfile({ displayName: newName });
-                document.getElementById('settings-name').textContent = newName;
-                document.getElementById('user-name-display').textContent = newName;
+                errorDiv.textContent = "Errore nella ricerca.";
+                errorDiv.classList.remove('hidden');
             }
         });
 
