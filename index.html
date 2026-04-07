@@ -1,9 +1,24 @@
-<!DOCTYPE html>
+
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body {
+                  background-color: white; /* Ensure the iframe has a white background */
+                }
+
+                
+              </style>
+                        </head>
+                        <body>
+                            <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Chat - Firebase</title>
+    <title>RL Chat</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,9 +29,10 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDKs (Compat version for standalone HTML) -->
+    <!-- Firebase SDKs (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
         body {
@@ -85,15 +101,14 @@
     <!-- LOGIN VIEW -->
     <div id="login-view" class="w-full max-w-md p-6 z-50 transition-opacity duration-500">
         <div class="glass rounded-3xl p-8 shadow-2xl border border-slate-700/50 relative overflow-hidden">
-            <!-- Decorative Glow -->
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
             
             <div class="text-center mb-8">
                 <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 mb-4">
                     <i class="ph-bold ph-chat-teardrop-text text-3xl"></i>
                 </div>
-                <h1 class="text-3xl font-bold brand-font text-white mb-2">Nexus Chat</h1>
-                <p class="text-slate-400 text-sm">Accedi per connetterti con il tuo team.</p>
+                <h1 class="text-3xl font-bold brand-font text-white mb-2">RL Chat</h1>
+                <p class="text-slate-400 text-sm">Accedi per sincronizzare i messaggi.</p>
             </div>
 
             <form id="email-login-form" class="space-y-4">
@@ -140,19 +155,18 @@
         </div>
     </div>
 
-    <!-- CHAT APP VIEW (Hidden by default) -->
+    <!-- CHAT APP VIEW -->
     <div id="app-view" class="w-full h-full max-w-[1600px] flex overflow-hidden relative sm:h-[90vh] sm:w-[95vw] sm:rounded-3xl shadow-2xl glass border border-slate-700/50 hidden opacity-0 transition-opacity duration-500">
         
         <!-- Sidebar -->
         <aside id="sidebar" class="w-full sm:w-[380px] flex flex-col border-r border-slate-700/50 bg-slate-900/80 z-20 transition-transform duration-300 absolute sm:relative h-full backdrop-blur-xl">
             
-            <!-- Header -->
             <header class="h-[80px] px-6 flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
                         <i class="ph-bold ph-chat-teardrop-text text-xl"></i>
                     </div>
-                    <span class="text-xl font-bold brand-font tracking-wide text-white">Nexus</span>
+                    <span class="text-xl font-bold brand-font tracking-wide text-white">RL Chat</span>
                 </div>
                 <div class="flex items-center gap-3">
                      <div class="text-right hidden md:block">
@@ -165,7 +179,6 @@
                 </div>
             </header>
 
-            <!-- Search -->
             <div class="px-6 pb-4">
                 <div class="relative group">
                     <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
@@ -173,7 +186,6 @@
                 </div>
             </div>
 
-            <!-- List -->
             <div id="contact-list" class="flex-1 overflow-y-auto px-3 space-y-1">
                 <!-- JS Injected -->
             </div>
@@ -182,19 +194,16 @@
         <!-- Chat Area -->
         <main class="flex-1 flex flex-col relative w-full bg-slate-900/40">
             
-            <!-- Empty State -->
             <div id="empty-state" class="hidden sm:flex flex-col items-center justify-center h-full text-center p-10">
                 <div class="w-32 h-32 bg-slate-800/50 rounded-full flex items-center justify-center mb-6 animate-pulse">
                     <i class="ph-duotone ph-planet text-6xl text-indigo-400"></i>
                 </div>
-                <h2 class="text-3xl font-bold text-white mb-2 brand-font">Benvenuto su Nexus</h2>
+                <h2 class="text-3xl font-bold text-white mb-2 brand-font">Benvenuto su RL Chat</h2>
                 <p class="text-slate-400 max-w-md">Seleziona una chat per iniziare a comunicare.</p>
             </div>
 
-            <!-- Active Chat -->
             <div id="active-chat-interface" class="flex flex-col h-full w-full hidden">
                 
-                <!-- Chat Header -->
                 <header class="h-[80px] px-6 flex justify-between items-center shrink-0 border-b border-slate-700/50 glass">
                     <div class="flex items-center gap-4">
                         <button id="back-btn" class="sm:hidden text-slate-400 hover:text-white">
@@ -215,12 +224,10 @@
                     </div>
                 </header>
 
-                <!-- Messages -->
                 <div id="messages-container" class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
                     <!-- Messages injected here -->
                 </div>
 
-                <!-- Input Area -->
                 <footer class="p-4 glass border-t border-slate-700/50">
                     <div class="max-w-4xl mx-auto flex items-end gap-3 bg-slate-800/50 p-2 rounded-3xl border border-slate-700/50 focus-within:border-indigo-500/50 focus-within:bg-slate-800 transition-all shadow-lg">
                         <textarea id="message-input" rows="1" placeholder="Scrivi un messaggio..." class="w-full bg-transparent text-slate-200 placeholder-slate-500 text-sm py-3 px-2 focus:outline-none resize-none max-h-32 scrollbar-hide"></textarea>
@@ -245,18 +252,17 @@
         };
 
         // Initialize Firebase
-        let auth;
-        let provider;
-        let isMockMode = false;
-
         try {
             firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            provider = new firebase.auth.GoogleAuthProvider();
+            console.log("Firebase initialized successfully");
         } catch (e) {
-            console.error("Errore inizializzazione Firebase:", e);
-            isMockMode = true;
+            console.error("Firebase init error:", e);
+            alert("Errore inizializzazione Firebase. Controlla la console.");
         }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const provider = new firebase.auth.GoogleAuthProvider();
 
         // --- DOM ELEMENTS ---
         const loginView = document.getElementById('login-view');
@@ -293,30 +299,24 @@
         }
 
         function handleAuthSuccess(user) {
-            console.log("User logged in:", user.email);
-            
-            // Update UI with User Info
             userNameDisplay.textContent = user.displayName || user.email.split('@')[0];
             userEmailDisplay.textContent = user.email;
 
-            // Transition
             loginView.style.opacity = '0';
             setTimeout(() => {
                 loginView.classList.add('hidden');
                 appView.classList.remove('hidden');
-                // Trigger reflow
                 void appView.offsetWidth; 
                 appView.style.opacity = '1';
                 initChatApp(user);
             }, 500);
         }
 
-        // Email Login Handler
         emailForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const isRegistering = toggleRegister.textContent === "Accedi"; // Se dice "Accedi", siamo in modalità registrazione
+            const isRegistering = toggleRegister.textContent === "Accedi";
 
             loginError.classList.add('hidden');
             setLoading(true);
@@ -338,7 +338,6 @@
             }
         });
 
-        // Google Login Handler
         googleBtn.addEventListener('click', () => {
             loginError.classList.add('hidden');
             auth.signInWithPopup(provider)
@@ -346,13 +345,11 @@
                 .catch((error) => showError(getErrorMessage(error.code)));
         });
 
-        // Logout Handler
         logoutBtn.addEventListener('click', () => {
             auth.signOut();
             window.location.reload();
         });
 
-        // Toggle Register/Login Text
         let isLoginMode = true;
         toggleRegister.addEventListener('click', (e) => {
             e.preventDefault();
@@ -366,11 +363,9 @@
                 document.querySelector('button[type="submit"] span').textContent = "Registrati";
                 document.querySelector('p.text-xs.text-slate-500').innerHTML = `Hai già un account? <a href="#" id="toggle-register" class="text-indigo-400 hover:text-indigo-300">Accedi</a>`;
             }
-            // Re-attach listener because innerHTML destroyed it
             document.getElementById('toggle-register').addEventListener('click', arguments.callee);
         });
 
-        // Helper for Error Messages
         function getErrorMessage(code) {
             switch(code) {
                 case 'auth/user-not-found': return 'Utente non trovato.';
@@ -379,11 +374,10 @@
                 case 'auth/weak-password': return 'Password troppo debole (min 6 caratteri).';
                 case 'auth/invalid-email': return 'Email non valida.';
                 case 'auth/popup-closed-by-user': return 'Accesso annullato.';
-                default: return 'Errore di autenticazione: ' + code;
+                default: return 'Errore: ' + code;
             }
         }
 
-        // Check Auth State on Load
         auth.onAuthStateChanged((user) => {
             if (user) {
                 handleAuthSuccess(user);
@@ -392,55 +386,36 @@
             }
         });
 
-        // --- CHAT APP LOGIC ---
+        // --- REAL-TIME CHAT LOGIC ---
 
+        // Mock Contacts Data
         const contacts = [
             {
-                id: 1,
-                name: "Elisa Martin",
-                role: "Product Designer",
-                avatar: "https://image.qwenlm.ai/public_source/d2d9ffc3-2da1-457d-aaff-4d913aad2da0/1e1258756-9d2c-4a9e-98f7-46fc5a72268f.png",
+                id: "general_chat",
+                name: "Chat Generale",
+                role: "Canale Pubblico",
+                avatar: "https://ui-avatars.com/api/?name=General&background=6366f1&color=fff",
                 status: "online",
-                lastMessage: "Il mockup è pronto! 🎨",
-                time: "10:42",
-                unread: 2,
-                messages: [
-                    { id: 1, text: "Ciao Elisa, come procede con la UI?", sender: "me", time: "10:30" },
-                    { id: 2, text: "Ciao! Sto giusto rifinendo i dettagli.", sender: "them", time: "10:35" },
-                    { id: 3, text: "Il mockup è pronto! 🎨", sender: "them", time: "10:42" }
-                ]
+                lastMessage: "...",
+                time: "",
+                unread: 0
             },
             {
-                id: 2,
-                name: "Dev Team Alpha",
-                role: "Gruppo • 8 Membri",
-                avatar: "https://ui-avatars.com/api/?name=Dev+Team&background=6366f1&color=fff&font-size=0.4",
+                id: "dev_team",
+                name: "Dev Team",
+                role: "Gruppo Sviluppatori",
+                avatar: "https://ui-avatars.com/api/?name=Dev+Team&background=10b981&color=fff",
                 status: "group",
-                lastMessage: "Marco: Deploy effettuato 🚀",
-                time: "09:15",
-                unread: 0,
-                messages: [
-                    { id: 1, text: "Ragazzi, occhio al merge conflict.", sender: "them", time: "09:00", name: "Sara" },
-                    { id: 2, text: "Deploy effettuato 🚀", sender: "them", time: "09:15", name: "Marco" }
-                ]
-            },
-            {
-                id: 3,
-                name: "Luca Rossi",
-                role: "Marketing Lead",
-                avatar: "https://image.qwenlm.ai/public_source/d2d9ffc3-2da1-457d-aaff-4d913aad2da0/1df80f0f5-5ef8-4e7b-a196-07f2ab7d54eb.png",
-                status: "offline",
-                lastMessage: "Ci sentiamo domani.",
-                time: "Ieri",
-                unread: 0,
-                messages: [
-                    { id: 1, text: "Hai visto le analytics?", sender: "them", time: "Ieri 16:00" },
-                    { id: 2, text: "Ci sentiamo domani.", sender: "them", time: "Ieri 17:00" }
-                ]
+                lastMessage: "...",
+                time: "",
+                unread: 0
             }
         ];
 
         let activeContactId = null;
+        let unsubscribeMessages = null; // To stop listening when switching chats
+        let currentUser = null;
+
         const contactListEl = document.getElementById('contact-list');
         const messagesContainer = document.getElementById('messages-container');
         const messageInput = document.getElementById('message-input');
@@ -455,6 +430,7 @@
         const chatStatusDot = document.getElementById('chat-status-dot');
 
         function initChatApp(user) {
+            currentUser = user;
             renderContacts();
             if (window.innerWidth >= 640) {
                 emptyState.classList.remove('hidden');
@@ -478,11 +454,7 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-baseline mb-1">
                             <h4 class="text-sm font-semibold truncate ${isActive ? 'text-indigo-300' : 'text-slate-200'}">${contact.name}</h4>
-                            <span class="text-xs ${isActive ? 'text-indigo-400' : 'text-slate-500'}">${contact.time}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <p class="text-xs text-slate-400 truncate pr-2 group-hover:text-slate-300 transition-colors">${contact.lastMessage}</p>
-                            ${contact.unread > 0 ? `<span class="bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg shadow-indigo-500/30">${contact.unread}</span>` : ''}
+                            <span class="text-xs ${isActive ? 'text-indigo-400' : 'text-slate-500'}">${contact.role}</span>
                         </div>
                     </div>
                 `;
@@ -518,31 +490,65 @@
                 chatSubtitle.className = "text-slate-500 text-xs font-medium";
             }
 
-            renderMessages(contact.messages);
+            // Start Real-time Listener for this chat
+            listenToMessages(id);
         }
 
-        function renderMessages(messages) {
-            messagesContainer.innerHTML = '<div class="flex justify-center my-4"><span class="text-xs font-medium text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full">Oggi</span></div>';
-            messages.forEach(msg => appendMessageToDOM(msg));
-            scrollToBottom();
+        function listenToMessages(chatId) {
+            // Unsubscribe from previous chat if exists
+            if (unsubscribeMessages) {
+                unsubscribeMessages();
+            }
+
+            messagesContainer.innerHTML = '<div class="flex justify-center my-4"><span class="text-xs font-medium text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full">Caricamento messaggi...</span></div>';
+
+            // Listen to Firestore Collection 'messages' filtered by chatId
+            // Note: If index is missing, check console for link to create it
+            unsubscribeMessages = db.collection('messages')
+                .where('chatId', '==', chatId)
+                .orderBy('timestamp', 'asc')
+                .onSnapshot((snapshot) => {
+                    messagesContainer.innerHTML = '<div class="flex justify-center my-4"><span class="text-xs font-medium text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full">Oggi</span></div>';
+                    
+                    if (snapshot.empty) {
+                        messagesContainer.innerHTML += '<div class="text-center text-slate-500 text-sm mt-10">Nessun messaggio. Inizia la conversazione!</div>';
+                    }
+
+                    snapshot.forEach((doc) => {
+                        const msg = doc.data();
+                        appendMessageToDOM(msg);
+                    });
+                    scrollToBottom();
+                }, (error) => {
+                    console.error("Error fetching messages: ", error);
+                    if (error.code === 'failed-precondition') {
+                        messagesContainer.innerHTML = '<div class="text-center text-yellow-400 text-sm mt-10">Indice non creato. Clicca sul link in console per crearlo.</div>';
+                    } else {
+                        messagesContainer.innerHTML = '<div class="text-center text-red-400 text-sm mt-10">Errore nel caricamento messaggi. Controlla la console.</div>';
+                    }
+                });
         }
 
         function appendMessageToDOM(msg) {
-            const isMe = msg.sender === 'me';
+            const isMe = msg.senderId === currentUser.uid;
             const div = document.createElement('div');
             div.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'} animate-slide-up`;
             
             let nameHtml = '';
-            if (!isMe && msg.name) {
-                nameHtml = `<span class="text-indigo-400 text-xs font-bold mb-1 ml-1 block">${msg.name}</span>`;
+            if (!isMe && msg.senderName) {
+                nameHtml = `<span class="text-indigo-400 text-xs font-bold mb-1 ml-1 block">${msg.senderName}</span>`;
             }
+
+            // Format time
+            const date = msg.timestamp ? msg.timestamp.toDate() : new Date();
+            const timeString = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 
             div.innerHTML = `
                 <div class="relative max-w-[75%] px-5 py-3 text-[15px] leading-relaxed ${isMe ? 'msg-sent text-white' : 'msg-received text-slate-200'} flex flex-col mb-1">
                     ${nameHtml}
                     <span class="break-words whitespace-pre-wrap">${msg.text}</span>
                     <div class="self-end flex items-center gap-1 mt-1 opacity-70">
-                        <span class="text-[10px] font-medium">${msg.time}</span>
+                        <span class="text-[10px] font-medium">${timeString}</span>
                         ${isMe ? '<i class="ph-fill ph-checks text-xs"></i>' : ''}
                     </div>
                 </div>
@@ -554,25 +560,26 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const text = messageInput.value.trim();
             if (!text || !activeContactId) return;
 
-            const contact = contacts.find(c => c.id === activeContactId);
-            const now = new Date();
-            const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-            const newMessage = { id: Date.now(), text: text, sender: 'me', time: timeString };
-
-            contact.messages.push(newMessage);
-            contact.lastMessage = text;
-            contact.time = timeString;
-
-            appendMessageToDOM(newMessage);
-            scrollToBottom();
             messageInput.value = '';
             messageInput.style.height = 'auto';
-            renderContacts();
+
+            // Save to Firestore
+            try {
+                await db.collection('messages').add({
+                    chatId: activeContactId,
+                    text: text,
+                    senderId: currentUser.uid,
+                    senderName: currentUser.displayName || currentUser.email.split('@')[0],
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Error sending message: ", error);
+                alert("Errore nell'invio: " + error.message);
+            }
         }
 
         messageInput.addEventListener('input', function() {
@@ -599,3 +606,20 @@
 </body>
 </html>
 
+
+
+              <script>
+                              rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
+
+              </script>
+                        </body>
+                        </html>
+                    
