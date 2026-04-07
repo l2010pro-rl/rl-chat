@@ -29,7 +29,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -45,28 +45,31 @@
             width: 100vw;
         }
         h1, h2, h3, .brand-font { font-family: 'Outfit', sans-serif; }
+        
+        /* Glassmorphism */
         .glass { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
         .glass-header { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        
+        /* Bubbles */
         .msg-sent { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border-radius: 18px 18px 4px 18px; }
         .msg-received { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 18px 18px 18px 4px; }
+        
+        /* Animations */
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
+        
+        /* Background */
         .bg-mesh {
             background-color: #0f172a;
             background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
         }
+
         /* Toggle Switch */
         .toggle-checkbox:checked { right: 0; border-color: #6366f1; }
         .toggle-checkbox:checked + .toggle-label { background-color: #6366f1; }
     </style>
 </head>
 <body class="bg-mesh text-slate-200">
-
-    <!-- CONNECTION ERROR BANNER -->
-    <div id="connection-error" class="hidden fixed top-0 left-0 w-full bg-red-600 text-white text-xs font-bold py-2 px-4 z-[100] flex justify-between items-center shadow-lg">
-        <span id="error-msg-text">Errore di connessione a Firebase</span>
-        <button onclick="document.getElementById('connection-error').classList.add('hidden')" class="hover:bg-red-700 px-2 rounded"><i class="ph ph-x"></i></button>
-    </div>
 
     <!-- LOGIN VIEW -->
     <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm transition-opacity duration-500">
@@ -259,33 +262,12 @@
             console.log("Firebase Inizializzato");
         } catch (e) {
             console.error("Errore Inizializzazione:", e);
-            showConnectionError("Impossibile inizializzare Firebase. Controlla la configurazione.");
+            alert("Errore configurazione Firebase.");
         }
         
         const auth = firebase.auth();
         const db = firebase.firestore();
         const provider = new firebase.auth.GoogleAuthProvider();
-
-        // --- DIAGNOSTICS ---
-        function showConnectionError(msg) {
-            const errDiv = document.getElementById('connection-error');
-            document.getElementById('error-msg-text').textContent = msg;
-            errDiv.classList.remove('hidden');
-        }
-
-        // Test Connection on Load
-        db.collection('users').limit(1).get()
-            .then(() => console.log("Connessione DB OK"))
-            .catch((error) => {
-                console.error("DB Error:", error);
-                if (error.code === 'unavailable') {
-                    showConnectionError("Client Offline: Controlla la tua connessione internet o il firewall.");
-                } else if (error.code === 'permission-denied') {
-                    showConnectionError("Accesso Negato: Controlla le Regole di Firestore nella Console.");
-                } else {
-                    showConnectionError("Errore DB: " + error.message);
-                }
-            });
 
         // --- UTILS ---
         function generateRLID() {
@@ -462,7 +444,7 @@
                     scrollToBottom();
                 }, err => {
                     console.error("Listen error:", err);
-                    showConnectionError("Errore nel caricare i messaggi: " + err.message);
+                    alert("Errore nel caricare i messaggi: " + err.message);
                 });
         }
 
@@ -498,7 +480,7 @@
                     senderName: currentUser.displayName,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-            } catch (e) { showConnectionError("Errore invio: " + e.message); }
+            } catch (e) { alert("Errore invio: " + e.message); }
         }
 
         sendBtn.addEventListener('click', sendMessage);
@@ -582,9 +564,9 @@
                               rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permetti tutto a chiunque sia loggato
+    // Questa riga permette a CHIUNQUE di leggere e scrivere (come le tue regole vecchie)
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
   }
 }
