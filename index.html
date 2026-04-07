@@ -28,16 +28,6 @@
                     colors: {
                         primary: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' },
                         dark: { 800: '#1e293b', 900: '#0f172a', 950: '#020617' }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.2s ease-out',
-                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                        'bounce-short': 'bounceShort 0.5s ease-in-out 1'
-                    },
-                    keyframes: {
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-                        bounceShort: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } }
                     }
                 }
             }
@@ -67,7 +57,7 @@
         .light .glass-header { background: rgba(255, 255, 255, 0.9); border-bottom: 1px solid rgba(0,0,0,0.05); }
 
         /* Message Bubbles */
-        .msg-bubble { position: relative; max-width: 75%; transition: all 0.2s ease; }
+        .msg-bubble { position: relative; max-width: 75%; transition: all 0.2s ease; word-wrap: break-word; }
         .msg-sent { 
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
             color: white; 
@@ -89,19 +79,12 @@
             transform-origin: top left;
         }
 
-        /* Loader */
-        .loader-ring {
-            display: inline-block; position: relative; width: 24px; height: 24px;
-        }
-        .loader-ring div {
-            box-sizing: border-box; display: block; position: absolute; width: 20px; height: 20px; margin: 2px;
-            border: 2px solid #fff; border-color: #fff transparent transparent transparent; border-radius: 50%;
-            animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-        }
-        .loader-ring div:nth-child(1) { animation-delay: -0.45s; }
-        .loader-ring div:nth-child(2) { animation-delay: -0.3s; }
-        .loader-ring div:nth-child(3) { animation-delay: -0.15s; }
-        @keyframes loader-ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Animations */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out; }
 
         /* Image Viewer */
         #image-viewer { transition: opacity 0.3s ease; }
@@ -214,7 +197,7 @@
                 <div class="px-4 py-3">
                     <div class="relative">
                         <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                        <input type="text" id="search-input" placeholder="Cerca chat o messaggi..." class="w-full bg-dark-900/50 border border-slate-700/50 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-dark-900 transition-all placeholder-slate-600">
+                        <input type="text" id="search-input" placeholder="Cerca chat..." class="w-full bg-dark-900/50 border border-slate-700/50 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-dark-900 transition-all placeholder-slate-600">
                     </div>
                 </div>
 
@@ -234,9 +217,6 @@
                     </div>
                     <h2 class="text-3xl font-display font-bold text-white mb-3">Nexus Web</h2>
                     <p class="text-slate-400 max-w-md text-sm leading-relaxed">Seleziona una chat per iniziare a comunicare.<br>I messaggi sono crittografati end-to-end.</p>
-                    <div class="mt-8 flex items-center gap-2 text-xs text-slate-600">
-                        <i class="ph-fill ph-lock-key"></i> Protetto da Nexus Shield
-                    </div>
                 </div>
 
                 <!-- Active Chat Interface -->
@@ -258,7 +238,6 @@
                         <div class="flex gap-1">
                             <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-400 hover:text-blue-400 transition-colors"><i class="ph ph-phone text-xl"></i></button>
                             <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-400 hover:text-blue-400 transition-colors"><i class="ph ph-video-camera text-xl"></i></button>
-                            <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors"><i class="ph ph-dots-three-vertical text-xl"></i></button>
                         </div>
                     </header>
 
@@ -277,7 +256,7 @@
                     <footer class="p-4 glass-header border-t border-white/5 relative">
                         
                         <!-- Reply Preview -->
-                        <div id="reply-preview-box" class="hidden absolute bottom-full left-0 w-full bg-dark-900/95 backdrop-blur border-t border-white/10 p-3 animate-slide-up">
+                        <div id="reply-preview-box" class="hidden absolute bottom-full left-0 w-full bg-dark-900/95 backdrop-blur border-t border-white/10 p-3 animate-slide-up z-20">
                             <div class="max-w-4xl mx-auto flex justify-between items-start">
                                 <div class="flex-1">
                                     <div class="text-xs text-blue-400 font-bold mb-1 flex items-center gap-2">
@@ -431,7 +410,6 @@
             
             setState(key, value) {
                 this[key] = value;
-                // Trigger UI updates based on state change if needed
                 if (key === 'isDarkMode') UI.toggleThemeClass(value);
             }
         };
@@ -561,11 +539,11 @@
                 this.elements.messagesArea.innerHTML = '';
                 let lastDate = null;
 
-                if (messages.length === 0) {
+                if (!messages || messages.length === 0) {
                     this.elements.messagesArea.innerHTML = `
                         <div class="flex flex-col items-center justify-center h-full text-slate-500 opacity-50">
                             <i class="ph ph-shield-check text-4xl mb-2"></i>
-                            <p class="text-xs">I messaggi sono protetti.</p>
+                            <p class="text-xs">Inizia la conversazione!</p>
                         </div>`;
                     return;
                 }
@@ -599,7 +577,7 @@
                     // Content
                     let contentHtml = '';
                     if (msg.type === 'image') {
-                        contentHtml = `<img src="${msg.content}" class="msg-image rounded-lg cursor-pointer hover:opacity-90" onclick="App.viewImage('${msg.content}')">`;
+                        contentHtml = `<img src="${msg.content}" class="msg-image rounded-lg cursor-pointer hover:opacity-90 max-w-full" onclick="App.viewImage('${msg.content}')">`;
                     } else {
                         contentHtml = `<p class="break-words leading-relaxed whitespace-pre-wrap">${Utils.sanitizeHTML(msg.text)}</p>`;
                     }
@@ -820,22 +798,7 @@
 
             // --- CHAT MANAGEMENT ---
             async loadChats() {
-                // In a real app, this would be a complex query joining 'chats' collection
-                // For this single-file demo, we simulate by scanning messages or using local cache
-                // Here we implement a simple "Recent Messages" scanner
-                
-                const snapshot = await db.collection('messages')
-                    .where('participants', 'array-contains', Store.user.uid)
-                    .orderBy('lastUpdated', 'desc')
-                    .limit(20)
-                    .get();
-
-                // Note: The above query requires a composite index in Firebase Console. 
-                // If it fails, we fallback to a simpler method or mock data for demo purposes.
-                // To ensure it works out of the box, let's use a simpler approach:
-                // We will just listen to 'general_chat' and private chats stored in localStorage for contacts.
-                
-                // Simulating Chat List for Demo Stability without Indexes:
+                // Start with General Chat
                 const chats = [
                     { id: 'general_chat', name: 'Community Generale', type: 'public', avatar: 'https://ui-avatars.com/api/?name=General&background=3b82f6&color=fff', lastMessage: 'Benvenuto su Nexus!', lastTime: 'Adesso' }
                 ];
@@ -884,6 +847,9 @@
                                 doc.ref.update({ read: true });
                             }
                         });
+                    }, error => {
+                        console.error("Error loading messages:", error);
+                        UI.elements.messagesArea.innerHTML = '<div class="text-center text-red-400 mt-10">Errore nel caricamento messaggi. Controlla la console.</div>';
                     });
 
                 // Update Chat List Highlight
@@ -906,8 +872,7 @@
                     text: text,
                     type: 'text',
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    read: false,
-                    participants: [Store.user.uid] // Simplified
+                    read: false
                 };
 
                 if (Store.replyTo) {
@@ -915,10 +880,12 @@
                     UI.hideReplyPreview();
                 }
 
-                await db.collection('messages').add(msgData);
-                
-                // Update "Last Message" in chat list (Simulated)
-                // In a real app, you'd update the 'chats' collection document
+                try {
+                    await db.collection('messages').add(msgData);
+                } catch (e) {
+                    console.error("Send error:", e);
+                    alert("Errore nell'invio. Verifica le regole Firestore.");
+                }
             },
 
             async sendMedia(base64, type) {
@@ -937,14 +904,15 @@
             handleTyping() {
                 // Debounce typing status update
                 clearTimeout(this.typingTimeout);
+                // Note: This requires a 'typing' collection in Firestore
                 db.collection('typing').doc(Store.activeChatId).set({
                     [Store.user.uid]: true
-                }, { merge: true });
+                }, { merge: true }).catch(() => {}); // Ignore errors if collection doesn't exist
 
                 this.typingTimeout = setTimeout(() => {
                     db.collection('typing').doc(Store.activeChatId).update({
                         [Store.user.uid]: firebase.firestore.FieldValue.delete()
-                    });
+                    }).catch(() => {});
                 }, 2000);
             },
 
